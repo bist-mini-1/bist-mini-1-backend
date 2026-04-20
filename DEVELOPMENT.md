@@ -13,7 +13,7 @@
 
 ### 4️⃣ 아키텍처 설계 및 피드백
 - [ ] **계층형 아키텍처(Layered Architecture)** 설계
-  - `Controller` - `Service` - `Repository(DAO)`
+  - `Controller` - `Service` - `DAO`
 - [ ] 설계 완료 후 팀 피드백 및 코드 구조 동기화
 
 ### 5️⃣ 브랜치 전략 및 작업 방식

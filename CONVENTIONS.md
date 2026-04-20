@@ -25,3 +25,8 @@ API 응답 규격을 통일하여 프론트엔드/테스트 효율을 높입니�
 ### 🚨 Global Exception Handling
 - `@RestControllerAdvice`를 사용하여 프로젝트 전역의 예외를 공통 형식으로 처리합니다.
 - 비즈니스 로직 예외 발생 시 `CustomException`을 정의하여 명확한 에러 메시지를 전달합니다.
+
+### 🛡️ Transaction Management
+- **Service Layer**: 비즈니스 로직을 수행하는 서비스 레이어에 `@Transactional`을 적용하여 데이터 정합성을 보장합니다.
+- **Rollback Policy**: 스프링의 기본 설정에 따라 `RuntimeException` (및 `CustomException`) 발생 시 자동으로 트랜잭션이 **롤백**됩니다.
+- **Performance**: 단순 조회 메서드에는 `@Transactional(readOnly = true)` 사용을 권장합니다.

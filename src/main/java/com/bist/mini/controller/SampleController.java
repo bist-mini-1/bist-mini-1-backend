@@ -34,7 +34,7 @@ public class SampleController {
     @Operation(summary = "샘플 상세 조회", description = "샘플 ID를 통해 상세 정보를 조회합니다.")
     @GetMapping("/{id}")
     public ApiResponse<Sample> getSample(
-            @Parameter(description = "샘플 고유 ID (999 요청 시 에러 발생)") @PathVariable Long id) {
+            @Parameter(description = "샘플 고유 ID (999 요청 시 에러 발생)") @PathVariable("id") Long id) {
         Sample sample = sampleService.getSampleDetail(id);
         return ApiResponse.success(sample);
     }

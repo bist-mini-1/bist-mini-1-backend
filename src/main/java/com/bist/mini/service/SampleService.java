@@ -13,7 +13,7 @@ import java.util.List;
  * 샘플 서비스 (Mock 데이터 반환)
  */
 @Service
-@Transactional(readOnly = true)
+// @Transactional(readOnly = true) // Mock 테스트를 위해 DB 트랜잭션 잠시 비활성화
 public class SampleService {
 
     /**

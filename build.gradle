@@ -57,6 +57,7 @@ tasks.named('test') {
 // Java 컴파일 및 Javadoc 인코딩 설정 (UTF-8)
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
 }
 
 tasks.withType(Javadoc) {

@@ -48,3 +48,6 @@ desktop.ini
 ### Security ###
 .env
 .env.local
+
+
+.metadata

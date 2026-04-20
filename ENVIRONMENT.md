@@ -10,7 +10,11 @@
 ---
 
 ## 🛠 Tech Stack
-- **Language:** Java
-- **Framework:** Spring Boot
-- **Database:** Oracle / MyBatis
-- **Documentation:** Swagger UI, Postman
+- **Language:** Java 21
+- **Framework:** Spring Boot 3.5.13
+- **Database:** Oracle DB, MyBatis
+- **Major Libraries:**
+  - `Validation` (입력값 검증)
+  - `Spring DevTools` (개발 편의 도구)
+  - `Jackson XML` (XML 데이터 처리)
+- **Documentation:** Swagger UI (SpringDoc), Postman

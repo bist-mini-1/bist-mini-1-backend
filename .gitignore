@@ -1,0 +1,50 @@
+### Java ###
+bin/
+build/
+.gradle/
+.settings/
+.classpath
+.project
+*.class
+*.jar
+*.war
+*.ear
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### STS / Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Application ###
+logs/
+*.log
+application-local.yml
+
+### VS Code ###
+.vscode/
+
+### Others ###
+*.tmp
+*.bak
+*.swp
+*~
+desktop.ini
+
+### Security ###
+.env
+.env.local

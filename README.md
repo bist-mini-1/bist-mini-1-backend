@@ -1,8 +1,12 @@
 # 🚀 BIST Mini Project 1 - Backend
 
-## 👥 Team Members
+BIST 미니 프로젝트 1기 백엔드 서버 저장소입니다.
 
-| Name | Role / Part | GitHub |
+---
+
+## 👥 팀원 소개 (Team Members)
+
+| 이름 | 역할 / 파트 | GitHub |
 | :--- | :--- | :--- |
 | **전명준** | Member | [@baming320](https://github.com/baming320) |
 | **김지환** | Member | [@pileuszu](https://github.com/pileuszu) |
@@ -11,29 +15,32 @@
 
 ---
 
-## 📖 Documentation
-프로젝트의 효율적인 협업과 가이드라인은 아래 문서를 참고해 주세요.
+## 📖 문서 가이드 (Documentation Map)
 
-- [📋 개발 프로세스 가이드 (DEVELOPMENT.md)](./DEVELOPMENT.md)
-- [🛠 협업 규칙 및 컨벤션 (CONVENTIONS.md)](./CONVENTIONS.md)
-- [⚙️ 환경 설정 및 기술 스택 (ENVIRONMENT.md)](./ENVIRONMENT.md)
-- [⚡ 갓 명령어 가이드 (COMMANDS.md)](./COMMANDS.md)
+프로젝트에 참여하기 위해 아래 순서대로 문서를 정독해 주세요.
+
+1.  **[⚙️ 환경 설정 (ENVIRONMENT.md)](./ENVIRONMENT.md)**: 가장 먼저 확인해야 할 기술 스택 및 로컬 설정 가이드입니다.
+2.  **[📋 개발 프로세스 (DEVELOPMENT.md)](./DEVELOPMENT.md)**: 어떻게 브랜치를 따고 작업하는지 워크플로우를 설명합니다.
+3.  **[🛠 협업 규칙 (CONVENTIONS.md)](./CONVENTIONS.md)**: 커밋 메시지, PR 제목, 코딩 스타일 등 팀 약속을 담고 있습니다.
+4.  **[⚡ 명령어 가이드 (COMMANDS.md)](./COMMANDS.md)**: 자주 쓰는 명령어를 모아 놓은 치트 시트입니다.
 
 ---
 
-## 💻 로컬 환경 설정 안내 (Local Setup Guide)
-팀원들이 각자의 로컬에서 프로젝트를 실행할 때, 본인의 환경에 맞춰 아래 설정들을 수정해야 합니다.
+## 💻 빠른 시작 (Quick Start)
 
-### 1️⃣ 환경 변수 설정 (.env)
-- **과정**: 프로젝트 루트의 `.env.example` 파일을 복사하여 `.env` 파일을 생성합니다.
-- **설명**: 생성한 `.env` 파일에 본인의 Oracle DB 계정 정보(URL, Username, Password)와 서버 포트를 설정합니다.
-- **특이사항**: `springboot3-dotenv` 라이브러리가 자동으로 `.env` 파일을 읽어 프로젝트에 반영하므로, `application.yml`을 직접 수정하지 않아도 됩니다.
+가장 빠르게 프로젝트를 실행하는 방법입니다.
 
-### 2️⃣ JDK 경로 설정 (필수)
-- **파일명**: `gradle.properties`
-- **대상**: `org.gradle.java.home`
-- **설명**: 본인의 PC에 JDK 21이 설치된 절대 경로로 수정해 주세요. (빌드 오류 방지)
+1.  **환경 설정**: [ENVIRONMENT.md](./ENVIRONMENT.md)를 참고하여 `.env` 파일을 생성합니다.
+2.  **의존성 설치 및 빌드**:
+    ```bash
+    .\gradlew clean build
+    ```
+3.  **실행**:
+    ```bash
+    .\gradlew bootRun
+    ```
 
-### 3️⃣ IDE 설정 확인 (STS 기준)
-- **설정**: `Annotation Processing` 활성화 (Lombok 사용을 위함)
-- **동기화**: 설정 변경 후 반드시 프로젝트 우클릭 → `Gradle` → `Refresh Gradle Project` 수행
+---
+
+> [!TIP]
+> 프로젝트 도중 궁금한 점이 생기면 [COMMANDS.md](./COMMANDS.md)의 꿀팁이나 트러블슈팅 섹션을 먼저 확인해 보세요.

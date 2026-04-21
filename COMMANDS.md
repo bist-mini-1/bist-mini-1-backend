@@ -1,127 +1,72 @@
-# ⚡ BIST Mini Project "갓" 명령어 가이드
+# ⚡ 명령어 가이드 (Cheat Sheet)
 
-개발 생산성을 높여주는 필수 명령어 모음집입니다. 복사해서 바로 사용하세요!
-
----
-
-## 🔐 1. 환경 설정 (Environment Setup)
-
-프로젝트 초기 설정 또는 설정 변경 시 사용합니다.
-
-### ✅ .env 파일 생성
-```bash
-# .env.example을 복사하여 .env 파일 생성 (Windows PowerShell)
-cp .env.example .env
-```
-
-### 🔄 IDE 설정 동기화
-- **STS/Eclipse**: 프로젝트 우클릭 -> `Gradle` -> `Refresh Gradle Project`
-- **VS Code**: `Command Palette` (Ctrl+Shift+P) -> `Java: Clean Language Server Workspace`
+실제 개발 시 자주 사용하게 될 명령어들을 카테고리별로 모아 놓았습니다.
 
 ---
 
-## 🐘 2. Gradle 빌드 및 실행 (Build & Run)
+## 🐣 1. Git 기초 흐름 (Git Flow)
 
-Gradle Wrapper(`gradlew`)를 사용하여 프로젝트를 관리합니다.
+처음 시작하는 분들을 위한 가장 기본적인 명령어 순서입니다.
 
-### 🛠 빌드 및 클린
 ```bash
-# 빌드 폴더 초기화 및 컴파일
-.\gradlew clean compileJava
-
-# 테스트 없이 전체 빌드 (jar 생성)
-.\gradlew clean build -x test
-```
-
-### 🚀 애플리케이션 실행
-```bash
-# 로컬에서 바로 실행
-.\gradlew bootRun
-```
-
-### 🧪 테스트 실행
-```bash
-# 모든 테스트 실행
-.\gradlew test
-
-# 특정 테스트 클래스만 실행
-.\gradlew test --tests "com.bist.mini.service.*"
-```
-
----
-
-## 🐣 3. 초보자를 위한 Git 기초 (Beginner's Git Flow)
-
-처음 Git을 사용하는 분들을 위한 가장 기본적인 명령어 흐름입니다.
-
-### 🔍 1단계: 변경사항 확인 (Status)
-```bash
-# 어떤 파일이 수정되었는지 확인
+# 1. 상태 확인
 git status
-```
 
-### ➕ 2단계: 파일 담기 (Add)
-```bash
-# 수정한 모든 파일을 커밋 대기열에 담기
+# 2. 변경사항 담기
 git add .
 
-# 특정 파일만 담고 싶을 때
-git add src/main/java/com/bist/mini/Sample.java
-```
-
-### ✍️ 3단계: 기록 남기 (Commit)
-```bash
-# 내 PC에 변경 사항을 기록 (메시지 필수!)
+# 3. 로컬 기록 남기 (컨벤션 준수!)
 git commit -m "feat: 설명 추가"
-```
 
-### 🚀 4단계: 서버에 올리기 (Push)
-```bash
-# 내가 기록한 내용을 GitHub 서버(remote)에 반영
+# 4. 서버에 동기화
 git push origin main
 ```
 
 ---
 
-## 🐙 4. Git 협업 규칙 (Git Convention)
+## 🐘 2. Gradle 빌드 및 실행 (Build & Run)
 
-컨벤션에 맞는 깔끔한 커밋을 위해 사용합니다.
+모든 명령어는 프로젝트 루트에서 실행해야 합니다.
 
-### 📝 커밋 메시지 템플릿
-```bash
-# 형식: type: description
-git commit -m "feat: 새로운 로그인 기능 추가"
-git commit -m "fix: DB 연결 타임아웃 오류 수정"
-git commit -m "docs: API 명세서 업데이트"
-git commit -m "refactor: 코드 구조 개선"
+### ⚙️ 빌드
+```powershell
+# 빌드 폴더 초기화 및 컴파일 확인
+.\gradlew clean compileJava
+
+# 테스트 코드를 제외하고 빌드 (실행 파일 생성)
+.\gradlew clean build -x test
 ```
 
-### 📥 최신 코드 반영 (Sync)
-```bash
-# main 브랜치의 최신 내용을 가져와서 내 코드 위에 얹기
-git pull origin main --rebase
+### 🚀 실행 및 테스트
+```powershell
+# 애플리케이션 즉시 실행
+.\gradlew bootRun
+
+# 모든 단위 테스트 실행
+.\gradlew test
 ```
 
 ---
 
-## 🛠 4. 유용한 꿀팁 (Helpful Tips)
+## 🛠 3. 유용한 트러블슈팅 (Troubleshooting)
 
-### 🚫 8080 포트가 이미 사용 중일 때 (Port Kill)
+### 🚫 포트 충돌 해결 (8080 포트 종료)
+포트 8080이 이미 사용 중이라는 에러 발생 시 아래 명령어로 강제 종료합니다.
 ```powershell
-# 8080 포트를 사용하는 프로세스 ID(PID) 확인
+# PID 확인
 netstat -ano | findstr :8080
 
-# 확인된 PID(예: 1234) 종료
+# 프로세스 종료 (확인된 PID가 1234인 경우)
 taskkill /F /PID 1234
 ```
 
-### 📦 의존성 캐시 강제 새로고침
-```bash
-# 의존성 문제가 해결되지 않을 때 사용
+### 📦 의존성 캐시 새로고침
+라이브러리가 제대로 인지되지 않을 때 사용합니다.
+```powershell
 .\gradlew build --refresh-dependencies
 ```
 
 ---
 
 > [!TIP]
-> 명령어 실행 시 권한 오류가 발생하면 **터미널을 관리자 권한으로 실행**해 보세요.
+> 협업 시 최신 코드를 유지하기 위해 작업 전 `git pull origin main --rebase`를 생활화합시다!

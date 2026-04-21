@@ -50,7 +50,40 @@ Gradle Wrapper(`gradlew`)를 사용하여 프로젝트를 관리합니다.
 
 ---
 
-## 🐙 3. Git 협업 규칙 (Git Convention)
+## 🐣 3. 초보자를 위한 Git 기초 (Beginner's Git Flow)
+
+처음 Git을 사용하는 분들을 위한 가장 기본적인 명령어 흐름입니다.
+
+### 🔍 1단계: 변경사항 확인 (Status)
+```bash
+# 어떤 파일이 수정되었는지 확인
+git status
+```
+
+### ➕ 2단계: 파일 담기 (Add)
+```bash
+# 수정한 모든 파일을 커밋 대기열에 담기
+git add .
+
+# 특정 파일만 담고 싶을 때
+git add src/main/java/com/bist/mini/Sample.java
+```
+
+### ✍️ 3단계: 기록 남기 (Commit)
+```bash
+# 내 PC에 변경 사항을 기록 (메시지 필수!)
+git commit -m "feat: 설명 추가"
+```
+
+### 🚀 4단계: 서버에 올리기 (Push)
+```bash
+# 내가 기록한 내용을 GitHub 서버(remote)에 반영
+git push origin main
+```
+
+---
+
+## 🐙 4. Git 협업 규칙 (Git Convention)
 
 컨벤션에 맞는 깔끔한 커밋을 위해 사용합니다.
 

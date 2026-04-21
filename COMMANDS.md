@@ -24,7 +24,21 @@ git push origin main
 
 ---
 
-## 🐘 2. Gradle 빌드 및 실행 (Build & Run)
+## 🔄 2. 최신 코드 반영 (Sync with Main)
+
+개별 브랜치(`feature/닉네임`)에서 작업할 때 `main`의 최신 내용을 가져오는 방법입니다.
+
+```bash
+# 1. 원격 저장소(GitHub)의 최신 이력 가져오기
+git fetch origin main
+
+# 2. 내 브랜치에 main의 변경 사항 합치기 (rebase 권장)
+git rebase origin/main
+```
+
+---
+
+## 🐘 3. Gradle 빌드 및 실행 (Build & Run)
 
 모든 명령어는 프로젝트 루트에서 실행해야 합니다.
 

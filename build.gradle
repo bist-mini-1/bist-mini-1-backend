@@ -50,7 +50,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Dotenv Support (Local Development)
-    developmentOnly 'me.paulschwarz:springboot3-dotenv:4.0.0'
+    developmentOnly 'me.paulschwarz:springboot3-dotenv:5.1.0'
 }
 
 tasks.named('test') {

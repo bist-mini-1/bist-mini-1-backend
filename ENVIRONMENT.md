@@ -7,6 +7,31 @@
 - **Database:** Oracle DB
 - **Encoding:** UTF-8
 
+## 🔐 Environment Variables
+로컬 개발 시 보안이 필요한 설정값은 환경 변수(`.env`)로 관리합니다.
+
+### 1. `.env` 파일 설정
+프로젝트 루트에 `.env` 파일을 생성하고 아래 형식을 참고하여 설정을 입력합니다. (`.env.example` 참고)
+
+```env
+# Server Configuration
+SERVER_PORT=8080
+
+# Database Configuration
+DB_URL=jdbc:oracle:thin:@localhost:1521:xe
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+
+# API Documentation (Swagger)
+APP_TITLE=BIST Mini Project API
+APP_DESCRIPTION=BIST Mini 프로젝트 1기 백엔드 API 명세서입니다.
+APP_VERSION=1.0.0
+```
+
+### 2. 자동 로딩 (Dotenv)
+- `me.paulschwarz:springboot3-dotenv` 라이브러리가 애플리케이션 시작 시 자동으로 `.env` 파일을 로드합니다.
+- 이에 따라 `application.yml`을 직접 수정할 필요 없이 환경 변수만으로 설정을 관리할 수 있습니다.
+
 ---
 
 ## 🛠 Tech Stack

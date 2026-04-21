@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +15,15 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SwaggerConfig {
+
+    @Value("${APP_TITLE:BIST Mini Project API}")
+    private String title;
+
+    @Value("${APP_DESCRIPTION:BIST 미니 프로젝트 1기 백엔드 API 명세서입니다.}")
+    private String description;
+
+    @Value("${APP_VERSION:1.0.0}")
+    private String version;
 
     @Bean
     public OpenAPI openAPI() {
@@ -28,9 +38,9 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("BIST Mini Project API")
-                        .description("BIST 미니 프로젝트 1기 백엔드 API 명세서입니다.")
-                        .version("1.0.0"))
+                        .title(title)
+                        .description(description)
+                        .version(version))
                 .addSecurityItem(securityRequirement)
                 .components(components);
     }

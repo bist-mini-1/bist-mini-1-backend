@@ -23,10 +23,10 @@
 ## 💻 로컬 환경 설정 안내 (Local Setup Guide)
 팀원들이 각자의 로컬에서 프로젝트를 실행할 때, 본인의 환경에 맞춰 아래 설정들을 수정해야 합니다.
 
-### 1️⃣ Database 접속 정보 수정
-- **파일명**: `src/main/resources/application.yml`
-- **대상**: `spring.datasource.username`, `password`
-- **설명**: 본인의 Oracle DB 계정 정보로 수정하여 접속을 확인해 주세요.
+### 1️⃣ 환경 변수 설정 (.env)
+- **과정**: 프로젝트 루트의 `.env.example` 파일을 복사하여 `.env` 파일을 생성합니다.
+- **설명**: 생성한 `.env` 파일에 본인의 Oracle DB 계정 정보(URL, Username, Password)와 서버 포트를 설정합니다.
+- **특이사항**: `springboot3-dotenv` 라이브러리가 자동으로 `.env` 파일을 읽어 프로젝트에 반영하므로, `application.yml`을 직접 수정하지 않아도 됩니다.
 
 ### 2️⃣ JDK 경로 설정 (필수)
 - **파일명**: `gradle.properties`

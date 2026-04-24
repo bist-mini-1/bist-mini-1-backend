@@ -2,15 +2,8 @@ package com.bist.mini;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
-import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 
-@SpringBootApplication(exclude = {
-    DataSourceAutoConfiguration.class,
-    HibernateJpaAutoConfiguration.class,
-    MybatisAutoConfiguration.class
-})
+@SpringBootApplication
 public class BackendApplication {
 
     public static void main(String[] args) {

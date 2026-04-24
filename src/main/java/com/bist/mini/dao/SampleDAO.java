@@ -15,4 +15,6 @@ public interface SampleDAO {
 
     Sample findById(Long id);
 
+    void insert(Sample sample);
+
 }

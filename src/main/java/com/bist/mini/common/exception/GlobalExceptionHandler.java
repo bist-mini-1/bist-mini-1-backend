@@ -3,7 +3,6 @@ package com.bist.mini.common.exception;
 import com.bist.mini.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,7 +22,7 @@ public class GlobalExceptionHandler {
         log.error("handleCustomException: {}", e.getErrorCode());
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
-                .status(errorCode.getStatus())
+                .status(errorCode.getStatus().value())
                 .body(ApiResponse.error(errorCode.getMessage()));
     }
 
@@ -35,7 +34,7 @@ public class GlobalExceptionHandler {
         log.error("handleMethodArgumentNotValidException");
         String message = e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
         return ResponseEntity
-                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus().value())
                 .body(ApiResponse.fail(message));
     }
 
@@ -46,7 +45,7 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         log.error("handleException", e);
         return ResponseEntity
-                .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
+                .status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus().value())
                 .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR.getMessage()));
     }
 }

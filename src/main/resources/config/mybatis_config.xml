@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE configuration 
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+	"https://mybatis.org/dtd/mybatis-3-config.dtd">
+  
+<configuration>
+	<settings>
+		<!-- 자바의 null을 SQL의 NULL로 매핑 -->
+		<setting name="jdbcTypeForNull" value="NULL"/>
+		<!-- 자바필드는 캐멀케이스/컬럼이름은 _ 로 연결 -->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+	<typeAliases>
+		<typeAlias alias="Sample" type="com.bist.mini.entity.Sample"/>
+	</typeAliases>
+</configuration>

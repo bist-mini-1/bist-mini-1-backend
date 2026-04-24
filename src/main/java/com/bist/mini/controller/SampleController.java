@@ -42,11 +42,10 @@ public class SampleController {
     @Operation(summary = "샘플 등록 예시 (@Valid)", description = "입력값을 검증하여 샘플 데이터를 등록하는 예시입니다.")
     @PostMapping
     public ApiResponse<Sample> createSample(@RequestBody @Valid SampleRequest request) {
-        // 실제 저장 로직 대신 성공 응답 반환 (Mock)
-        Sample created = Sample.builder()
-                .id(100L)
+        Sample sample = Sample.builder()
                 .testStr(request.getTestStr())
                 .build();
+        Sample created = sampleService.createSample(sample);
         return ApiResponse.success(created);
     }
 }

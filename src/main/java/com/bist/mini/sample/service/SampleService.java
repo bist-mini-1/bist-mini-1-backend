@@ -1,9 +1,9 @@
-package com.bist.mini.service;
+package com.bist.mini.sample.service;
 
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
-import com.bist.mini.dao.SampleDAO;
-import com.bist.mini.entity.Sample;
+import com.bist.mini.sample.dao.SampleDAO;
+import com.bist.mini.sample.entity.Sample;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

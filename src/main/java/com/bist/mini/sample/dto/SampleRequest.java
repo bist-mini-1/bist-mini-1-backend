@@ -1,4 +1,4 @@
-package com.bist.mini.dto;
+package com.bist.mini.sample.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

@@ -1,9 +1,9 @@
-package com.bist.mini.controller;
+package com.bist.mini.sample.controller;
 
 import com.bist.mini.common.ApiResponse;
-import com.bist.mini.dto.SampleRequest;
-import com.bist.mini.entity.Sample;
-import com.bist.mini.service.SampleService;
+import com.bist.mini.sample.dto.SampleRequest;
+import com.bist.mini.sample.entity.Sample;
+import com.bist.mini.sample.service.SampleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

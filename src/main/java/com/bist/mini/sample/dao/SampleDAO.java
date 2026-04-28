@@ -1,6 +1,6 @@
-package com.bist.mini.dao;
+package com.bist.mini.sample.dao;
 
-import com.bist.mini.entity.Sample;
+import com.bist.mini.sample.entity.Sample;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

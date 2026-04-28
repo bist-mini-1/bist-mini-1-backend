@@ -12,6 +12,6 @@
 		<setting name="mapUnderscoreToCamelCase" value="true"/>
 	</settings>
 	<typeAliases>
-		<typeAlias alias="Sample" type="com.bist.mini.entity.Sample"/>
+		<typeAlias alias="Sample" type="com.bist.mini.sample.entity.Sample"/>
 	</typeAliases>
 </configuration>

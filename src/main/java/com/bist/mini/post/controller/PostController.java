@@ -45,10 +45,29 @@ public class PostController {
         return ApiResponse.success(posts);
     }
 
-    @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 조회하고 조회수를 증가시킵니다.")
+    @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 조회합니다. 자신이 아닌 글이면 조회수를 증가시킵니다.")
     @GetMapping("/{id}")
-    public ApiResponse<Post> getPostDetail(@PathVariable Long id) {
-        Post post = postService.getPostDetail(id);
+    public ApiResponse<Post> getPostDetail(
+            @PathVariable Long id,
+            HttpServletRequest httpRequest
+    ) {
+        Long memberId = null;
+        try {
+            String authorization = httpRequest.getHeader("Authorization");
+            if (authorization != null && !authorization.isEmpty()) {
+                memberId = jwtProvider.getMemberIdFromToken(authorization);
+            }
+        } catch (Exception e) {
+            // JWT 파싱 실패 시 계속 진행 (비로그인 사용자)
+        }
+
+        Post post;
+        if (memberId != null) {
+            post = postService.getPostDetailWithViewCount(id, memberId);
+        } else {
+            post = postService.getPostDetail(id);
+            postService.incrementViewCount(id);
+        }
         return ApiResponse.success(post);
     }
 

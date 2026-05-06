@@ -33,11 +33,24 @@ public class PostService {
    }
 
    public Post getPostDetail(Long postId) {
-       postDAO.updateViewCount(postId);
        Post post = postDAO.findById(postId);
        if (post == null) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
+       return post;
+   }
+
+   public Post getPostDetailWithViewCount(Long postId, Long memberId) {
+       Post post = postDAO.findById(postId);
+       if (post == null) {
+           throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+       }
+
+       // 자신의 글이 아닐 때만 조회수 증가
+       if (!post.getMemberId().equals(memberId)) {
+           postDAO.updateViewCount(postId);
+       }
+
        return post;
    }
 
@@ -70,6 +83,11 @@ public class PostService {
        if (deleted == 0) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
+   }
+
+   @Transactional
+   public void incrementViewCount(Long postId) {
+       postDAO.updateViewCount(postId);
    }
 
    public List<Post> getTempPostList(Long memberId) {

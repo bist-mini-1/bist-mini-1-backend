@@ -28,7 +28,6 @@ public interface PostDAO {
 
    int softDeletePost(@Param("postId") Long postId, @Param("memberId") Long memberId);
 
-   // 관련 테이블 소프트 삭제 메서드
    int softDeleteCommentsByPostId(Long postId);
 
    int softDeletePostTagsByPostId(Long postId);

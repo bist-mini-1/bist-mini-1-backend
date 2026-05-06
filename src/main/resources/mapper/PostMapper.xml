@@ -30,4 +30,56 @@
         )
     </insert>
 
+    <select id="findByMemberId" parameterType="long" resultType="com.bist.mini.post.entity.Post">
+        SELECT
+            post_id, member_id, title, content, view_count, like_count, comment_count,
+            is_public, is_temp, is_deleted, created_at, updated_at, deleted_at
+        FROM posts
+        WHERE member_id = #{param1}
+          AND is_deleted = 'N'
+          AND is_temp = 'N'
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findTempByMemberId" parameterType="long" resultType="com.bist.mini.post.entity.Post">
+        SELECT
+            post_id, member_id, title, content, view_count, like_count, comment_count,
+            is_public, is_temp, is_deleted, created_at, updated_at, deleted_at
+        FROM posts
+        WHERE member_id = #{param1}
+          AND is_deleted = 'N'
+          AND is_temp = 'Y'
+        ORDER BY updated_at DESC
+    </select>
+
+    <update id="updateViewCount" parameterType="long">
+        UPDATE posts
+        SET view_count = view_count + 1,
+            updated_at = SYSDATE
+        WHERE post_id = #{param1}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="updatePost" parameterType="com.bist.mini.post.entity.Post">
+        UPDATE posts
+        SET title = #{title},
+            content = #{content},
+            is_public = #{isPublic},
+            is_temp = #{isTemp},
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND member_id = #{memberId}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeletePost" parameterType="map">
+        UPDATE posts
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND member_id = #{memberId}
+          AND is_deleted = 'N'
+    </update>
+
 </mapper>

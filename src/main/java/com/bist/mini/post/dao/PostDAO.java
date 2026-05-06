@@ -2,19 +2,30 @@ package com.bist.mini.post.dao;
 
 import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 /**
-* Post 데이터 접근 객체 (MyBatis Mapper)
-*/
+ * Post 데이터 접근 객체 (MyBatis Mapper)
+ */
 @Mapper
 public interface PostDAO {
 
    List<Post> findAll();
 
+   List<Post> findByMemberId(Long memberId);
+
+   List<Post> findTempByMemberId(Long memberId);
+
    Post findById(Long id);
 
-   void insert(Post sample);
+   void insert(Post post);
+
+   int updateViewCount(Long postId);
+
+   int updatePost(Post post);
+
+   int softDeletePost(@Param("postId") Long postId, @Param("memberId") Long memberId);
 
 }

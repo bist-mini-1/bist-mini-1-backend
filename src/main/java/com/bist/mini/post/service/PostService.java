@@ -18,22 +18,48 @@ public class PostService {
 
    private final PostDAO postDAO;
 
-
-//    public List<Post> getSampleList() {
-//        return postDAO.findAll();
-//    }
-
-//    public Post getSampleDetail(Long id) {
-//        Post post = postDAO.findById(id);
-//        if (post == null) {
-//            throw new CustomException("존재하지 않는 샘플 ID입니다.", ErrorCode.POST_ERROR);
-//        }
-//        return post;
-//    }
-
    @Transactional
-      public Post createPost(Post post) {
+   public Post createPost(Post post) {
        postDAO.insert(post);
        return post;
    }
+
+   public List<Post> getPostList() {
+       return postDAO.findAll();
+   }
+
+   public List<Post> getPostListByMember(Long memberId) {
+       return postDAO.findByMemberId(memberId);
+   }
+
+   public Post getPostDetail(Long postId) {
+       postDAO.updateViewCount(postId);
+       Post post = postDAO.findById(postId);
+       if (post == null) {
+           throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+       }
+       return post;
+   }
+
+   @Transactional
+   public Post updatePost(Post post) {
+       int updated = postDAO.updatePost(post);
+       if (updated == 0) {
+           throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+       }
+       return postDAO.findById(post.getPostId());
+   }
+
+   @Transactional
+   public void deletePost(Long postId, Long memberId) {
+       int deleted = postDAO.softDeletePost(postId, memberId);
+       if (deleted == 0) {
+           throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+       }
+   }
+
+   public List<Post> getTempPostList(Long memberId) {
+       return postDAO.findTempByMemberId(memberId);
+   }
 }
+

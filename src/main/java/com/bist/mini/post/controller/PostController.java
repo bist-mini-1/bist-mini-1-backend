@@ -50,18 +50,37 @@ public class PostController {
     ) {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         Post created = postService.createPost(memberId, postRequest);
-        return ApiResponse.success(PostResponse.from(created));
+        return ApiResponse.success(postService.getPostResponseWithStatus(created, memberId));
     }
 
-    @Operation(summary = "Get Post List", description = "Get public posts with pagination.")
+    @Operation(summary = "Get Post List", description = "Get public posts with pagination and category filtering.")
     @GetMapping
     public ApiResponse<PostPageResponse> getPostList(
             @Parameter(description = "Page number (starts from 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size (max 100)", example = "10")
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Category name", example = "기술")
+            @RequestParam(required = false) String category,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        PostPageResponse pageResponse = postService.getPostListWithPagination(page, size);
+        Long memberId = extractOptionalMemberId(token);
+        PostPageResponse pageResponse = postService.getPostListWithPagination(page, size, category, memberId);
+        return ApiResponse.success(pageResponse);
+    }
+
+    @Operation(summary = "Get Post List by Tag", description = "Get public posts by tag name with pagination.")
+    @GetMapping("/tag/{tagName}")
+    public ApiResponse<PostPageResponse> getPostListByTag(
+            @PathVariable String tagName,
+            @Parameter(description = "Page number (starts from 0)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size (max 100)", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String token
+    ) {
+        Long memberId = extractOptionalMemberId(token);
+        PostPageResponse pageResponse = postService.getPostListByTag(page, size, tagName, memberId);
         return ApiResponse.success(pageResponse);
     }
 
@@ -71,17 +90,9 @@ public class PostController {
             @PathVariable Long id,
             @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        Long memberId = null;
-        if (token != null && !token.isEmpty()) {
-            try {
-                memberId = jwtProvider.getMemberIdFromToken(token);
-            } catch (Exception e) {
-                // Ignore invalid token
-            }
-        }
-
+        Long memberId = extractOptionalMemberId(token);
         Post post = postService.getPostDetail(id, memberId);
-        return ApiResponse.success(PostResponse.from(post));
+        return ApiResponse.success(postService.getPostResponseWithStatus(post, memberId));
     }
 
     @Operation(summary = "Update Post", description = "Update own post with JWT authentication (Multipart Form Support).")
@@ -93,7 +104,7 @@ public class PostController {
     ) {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         Post updated = postService.updatePost(id, memberId, postRequest);
-        return ApiResponse.success(PostResponse.from(updated));
+        return ApiResponse.success(postService.getPostResponseWithStatus(updated, memberId));
     }
 
     @Operation(summary = "Delete Post", description = "Delete own post with JWT authentication.")
@@ -115,5 +126,16 @@ public class PostController {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         List<Post> tempPosts = postService.getTempPostList(memberId);
         return ApiResponse.success(PostResponse.fromList(tempPosts));
+    }
+
+    private Long extractOptionalMemberId(String token) {
+        if (token != null && !token.isEmpty()) {
+            try {
+                return jwtProvider.getMemberIdFromToken(token);
+            } catch (Exception e) {
+                // Ignore invalid token for optional auth
+            }
+        }
+        return null;
     }
 }

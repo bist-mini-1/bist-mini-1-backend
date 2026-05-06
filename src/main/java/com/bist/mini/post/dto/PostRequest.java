@@ -28,6 +28,9 @@ public class PostRequest {
    @Schema(description = "게시글 내용", example = "게시글 내용 작성")
    private String content;
 
+   @Schema(description = "게시글 카테고리", example = "기술")
+   private String category;
+
    @NotBlank(message = "공개 여부를 선택해주세요.")
    @Pattern(regexp = "^[YN]$", message = "공개 여부는 Y 또는 N이어야 합니다.")
    @Schema(description = "공개 여부", example = "Y")
@@ -62,6 +65,7 @@ public class PostRequest {
             .viewCount(0L)
             .likeCount(0L)
             .commentCount(0L)
+            .category(this.category)
             .isPublic(this.isPublic)
             .isTemp(this.isTemp)
             .isDeleted("N")

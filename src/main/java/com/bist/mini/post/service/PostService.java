@@ -6,6 +6,7 @@ import com.bist.mini.post.dao.PostDAO;
 import com.bist.mini.post.dao.TagDAO;
 import com.bist.mini.post.dto.AttachmentUploadResponse;
 import com.bist.mini.post.dto.PostRequest;
+import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
 import com.bist.mini.post.dto.PostPageResponse;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -46,23 +48,60 @@ public class PostService {
       return loadPost(post.getPostId());
    }
 
-   public List<Post> getPostList() {
-      return postDAO.findAll();
-   }
-
-   public PostPageResponse getPostListWithPagination(int page, int size) {
+   public PostPageResponse getPostListWithPagination(int page, int size, String category, Long currentMemberId) {
       if (page < 0) page = 0;
       if (size <= 0 || size > 100) size = 10;
 
       int offset = page * size;
-      List<Post> posts = postDAO.findAllWithPage(offset, size);
-      long totalElements = postDAO.countAll();
+      List<Post> posts = postDAO.findAllWithPage(offset, size, category);
+      long totalElements = postDAO.countAll(category);
 
-      return PostPageResponse.of(posts, page, size, totalElements);
+      List<PostResponse> responseList = posts.stream()
+            .map(post -> {
+               PostResponse resp = PostResponse.from(post);
+               if (currentMemberId != null) {
+                  resp.setLiked(postDAO.countLike(post.getPostId(), currentMemberId) > 0);
+                  resp.setBookmarked(postDAO.countBookmark(post.getPostId(), currentMemberId) > 0);
+               }
+               return resp;
+            })
+            .collect(Collectors.toList());
+
+      return PostPageResponse.builder()
+            .content(responseList)
+            .currentPage(page)
+            .pageSize(size)
+            .totalElements(totalElements)
+            .totalPages((int) Math.ceil((double) totalElements / size))
+            .build();
    }
 
-   public List<Post> getPostListByMember(Long memberId) {
-      return postDAO.findByMemberId(memberId);
+   public PostPageResponse getPostListByTag(int page, int size, String tagName, Long currentMemberId) {
+      if (page < 0) page = 0;
+      if (size <= 0 || size > 100) size = 10;
+
+      int offset = page * size;
+      List<Post> posts = postDAO.findByTag(tagName, offset, size);
+      long totalElements = postDAO.countByTag(tagName);
+
+      List<PostResponse> responseList = posts.stream()
+            .map(post -> {
+               PostResponse resp = PostResponse.from(post);
+               if (currentMemberId != null) {
+                  resp.setLiked(postDAO.countLike(post.getPostId(), currentMemberId) > 0);
+                  resp.setBookmarked(postDAO.countBookmark(post.getPostId(), currentMemberId) > 0);
+               }
+               return resp;
+            })
+            .collect(Collectors.toList());
+
+      return PostPageResponse.builder()
+            .content(responseList)
+            .currentPage(page)
+            .pageSize(size)
+            .totalElements(totalElements)
+            .totalPages((int) Math.ceil((double) totalElements / size))
+            .build();
    }
 
    public Post getPostDetail(Long postId, Long memberId) {
@@ -78,6 +117,15 @@ public class PostService {
       }
 
       return post;
+   }
+
+   public PostResponse getPostResponseWithStatus(Post post, Long currentMemberId) {
+      PostResponse resp = PostResponse.from(post);
+      if (currentMemberId != null) {
+         resp.setLiked(postDAO.countLike(post.getPostId(), currentMemberId) > 0);
+         resp.setBookmarked(postDAO.countBookmark(post.getPostId(), currentMemberId) > 0);
+      }
+      return resp;
    }
 
    @Transactional
@@ -112,20 +160,15 @@ public class PostService {
       }
 
       postDAO.softDeleteCommentsByPostId(postId);
-      postDAO.softDeleteAttachmentsByPostId(postId);
+      postDAO.softDeletePostTagsByPostId(postId);
       postDAO.softDeletePostLikesByPostId(postId);
       postDAO.softDeleteBookmarksByPostId(postId);
-      postDAO.softDeletePostTagsByPostId(postId);
+      postDAO.softDeleteAttachmentsByPostId(postId);
 
       int deleted = postDAO.softDeletePost(postId, memberId);
       if (deleted == 0) {
          throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
       }
-   }
-
-   @Transactional
-   public void incrementViewCount(Long postId) {
-      postDAO.updateViewCount(postId);
    }
 
    public List<Post> getTempPostList(Long memberId) {

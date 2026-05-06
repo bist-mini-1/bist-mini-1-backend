@@ -39,6 +39,9 @@ public class Post {
     @Schema(description = "댓글 수", example = "0")
     private Long commentCount;
 
+    @Schema(description = "게시글 카테고리", example = "기술")
+    private String category;
+
     @Schema(description = "공개 여부 (Y/N)", example = "Y")
     private String isPublic;
 

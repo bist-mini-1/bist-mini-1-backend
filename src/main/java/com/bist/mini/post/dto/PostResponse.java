@@ -6,12 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,6 +41,9 @@ public class PostResponse {
     @Schema(description = "댓글 수", example = "0")
     private Long commentCount;
 
+    @Schema(description = "게시글 카테고리", example = "기술")
+    private String category;
+
     @Schema(description = "공개 여부 (Y/N)", example = "Y")
     private String isPublic;
 
@@ -47,6 +52,12 @@ public class PostResponse {
 
     @Schema(description = "썸네일 이미지 URL", example = "https://example.com/thumbnail.jpg")
     private String thumbnail;
+
+    @Schema(description = "좋아요 여부", example = "false")
+    private boolean isLiked;
+
+    @Schema(description = "북마크 여부", example = "false")
+    private boolean isBookmarked;
 
     @Schema(description = "생성일시")
     private LocalDateTime createdAt;
@@ -67,6 +78,7 @@ public class PostResponse {
                 .viewCount(post.getViewCount())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
+                .category(post.getCategory())
                 .isPublic(post.getIsPublic())
                 .isTemp(post.getIsTemp())
                 .thumbnail(post.getThumbnail())

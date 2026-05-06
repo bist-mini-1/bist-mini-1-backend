@@ -10,6 +10,7 @@
         <result property="viewCount" column="view_count" />
         <result property="likeCount" column="like_count" />
         <result property="commentCount" column="comment_count" />
+        <result property="category" column="category" />
         <result property="isPublic" column="is_public" />
         <result property="isTemp" column="is_temp" />
         <result property="isDeleted" column="is_deleted" />
@@ -20,10 +21,13 @@
         <collection property="tags" ofType="string" column="post_id" select="selectTagNamesByPostId" />
     </resultMap>
 
+    <sql id="postColumns">
+        post_id, member_id, title, content, view_count, like_count, comment_count, category,
+        is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+    </sql>
+
     <select id="findAll" resultMap="postResultMap">
-        SELECT
-            post_id, member_id, title, content, view_count, like_count, comment_count,
-            is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+        SELECT <include refid="postColumns" />
         FROM posts
         WHERE is_deleted = 'N'
           AND is_temp = 'N'
@@ -31,9 +35,7 @@
     </select>
 
     <select id="findById" parameterType="long" resultMap="postResultMap">
-        SELECT
-            post_id, member_id, title, content, view_count, like_count, comment_count,
-            is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+        SELECT <include refid="postColumns" />
         FROM posts
         WHERE post_id = #{param1}
           AND is_deleted = 'N'
@@ -41,17 +43,15 @@
 
     <insert id="insert" parameterType="com.bist.mini.post.entity.Post" useGeneratedKeys="true" keyProperty="postId" keyColumn="post_id">
         INSERT INTO posts (
-            member_id, title, content, is_public, is_temp, thumbnail, created_at, updated_at
+            member_id, title, content, category, is_public, is_temp, thumbnail, created_at, updated_at
         )
         VALUES (
-            #{memberId}, #{title}, #{content}, #{isPublic}, #{isTemp}, #{thumbnail}, SYSDATE, SYSDATE
+            #{memberId}, #{title}, #{content}, #{category}, #{isPublic}, #{isTemp}, #{thumbnail}, SYSDATE, SYSDATE
         )
     </insert>
 
     <select id="findByMemberId" parameterType="long" resultMap="postResultMap">
-        SELECT
-            post_id, member_id, title, content, view_count, like_count, comment_count,
-            is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+        SELECT <include refid="postColumns" />
         FROM posts
         WHERE member_id = #{param1}
           AND is_deleted = 'N'
@@ -60,9 +60,7 @@
     </select>
 
     <select id="findTempByMemberId" parameterType="long" resultMap="postResultMap">
-        SELECT
-            post_id, member_id, title, content, view_count, like_count, comment_count,
-            is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+        SELECT <include refid="postColumns" />
         FROM posts
         WHERE member_id = #{param1}
           AND is_deleted = 'N'
@@ -82,6 +80,7 @@
         UPDATE posts
         SET title = #{title},
             content = #{content},
+            category = #{category},
             is_public = #{isPublic},
             is_temp = #{isTemp},
             thumbnail = #{thumbnail},
@@ -143,14 +142,15 @@
     </update>
 
 
-    <!-- 페이지네이션 쿼리 -->
+    <!-- 페이지네이션 및 필터링 쿼리 -->
     <select id="findAllWithPage" resultMap="postResultMap">
-        SELECT
-            post_id, member_id, title, content, view_count, like_count, comment_count,
-            is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+        SELECT <include refid="postColumns" />
         FROM posts
         WHERE is_deleted = 'N'
           AND is_temp = 'N'
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
         ORDER BY created_at DESC
         OFFSET #{offset} ROWS
         FETCH NEXT #{limit} ROWS ONLY
@@ -161,6 +161,46 @@
         FROM posts
         WHERE is_deleted = 'N'
           AND is_temp = 'N'
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+    </select>
+
+    <!-- 태그별 조회 -->
+    <select id="findByTag" resultMap="postResultMap">
+        SELECT p.*
+        FROM posts p
+        JOIN post_tags pt ON p.post_id = pt.post_id
+        JOIN tags t ON t.tag_id = pt.tag_id
+        WHERE t.name = #{tagName}
+          AND p.is_deleted = 'N'
+          AND p.is_temp = 'N'
+        ORDER BY p.created_at DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="countByTag" resultType="long">
+        SELECT COUNT(*)
+        FROM posts p
+        JOIN post_tags pt ON p.post_id = pt.post_id
+        JOIN tags t ON t.tag_id = pt.tag_id
+        WHERE t.name = #{tagName}
+          AND p.is_deleted = 'N'
+          AND p.is_temp = 'N'
+    </select>
+
+    <!-- 좋아요/북마크 확인 -->
+    <select id="countLike" resultType="int">
+        SELECT COUNT(*)
+        FROM post_likes
+        WHERE post_id = #{postId} AND member_id = #{memberId}
+    </select>
+
+    <select id="countBookmark" resultType="int">
+        SELECT COUNT(*)
+        FROM bookmarks
+        WHERE post_id = #{postId} AND member_id = #{memberId}
     </select>
 
     <select id="selectTagNamesByPostId" parameterType="long" resultType="string">

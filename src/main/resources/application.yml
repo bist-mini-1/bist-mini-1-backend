@@ -13,7 +13,7 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: com.bist.mini.member.entity
+  type-aliases-package: com.bist.mini
   configuration:
     map-underscore-to-camel-case: true
 

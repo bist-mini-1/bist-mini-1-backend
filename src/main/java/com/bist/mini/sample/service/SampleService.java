@@ -1,32 +1,32 @@
-//package com.bist.mini.sample.service;
-//
-//import com.bist.mini.common.exception.CustomException;
-//import com.bist.mini.common.exception.ErrorCode;
-//import com.bist.mini.sample.dao.SampleDAO;
-//import com.bist.mini.sample.entity.Sample;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.stereotype.Service;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//import java.util.List;
-//
-///**
+// package com.bist.mini.sample.service;
+
+// import com.bist.mini.common.exception.CustomException;
+// import com.bist.mini.common.exception.ErrorCode;
+// import com.bist.mini.sample.dao.SampleDAO;
+// import com.bist.mini.sample.entity.Sample;
+// import lombok.RequiredArgsConstructor;
+// import org.springframework.stereotype.Service;
+// import org.springframework.transaction.annotation.Transactional;
+
+// import java.util.List;
+
+// /**
 // * 샘플 서비스
 // */
-//@Service
-//@Transactional(readOnly = true)
-//@RequiredArgsConstructor
-//public class SampleService {
-//
+// @Service
+// @Transactional(readOnly = true)
+// @RequiredArgsConstructor
+// public class SampleService {
+
 //    private final SampleDAO sampleDAO;
-//
+
 //    /**
 //     * 샘플 리스트 조회
 //     */
 //    public List<Sample> getSampleList() {
 //        return sampleDAO.findAll();
 //    }
-//
+
 //    /**
 //     * 상세 조회
 //     */
@@ -37,7 +37,7 @@
 //        }
 //        return sample;
 //    }
-//
+
 //    /**
 //     * 샘플 등록
 //     */
@@ -46,4 +46,4 @@
 //        sampleDAO.insert(sample);
 //        return sample;
 //    }
-//}
+// }

@@ -1,4 +1,4 @@
-package com.bist.mini.config;
+package com.bist.mini.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -12,6 +12,9 @@
 		<setting name="mapUnderscoreToCamelCase" value="true"/>
 	</settings>
 	<typeAliases>
+		<typeAlias alias="Post" type="com.bist.mini.post.entity.Post"/>
+		<typeAlias alias="PostRequest" type="com.bist.mini.post.dto.PostRequest"/>
+		<typeAlias alias="Member" type="com.bist.mini.member.entity.Member"/>
 		<typeAlias alias="Sample" type="com.bist.mini.sample.entity.Sample"/>
 	</typeAliases>
 </configuration>

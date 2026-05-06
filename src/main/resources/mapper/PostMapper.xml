@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.post.dao.PostDAO">
+
+    <resultMap id="postResultMap" type="com.bist.mini.post.entity.Post">
+        <id property="postId" column="post_id" />
+        <result property="memberId" column="member_id" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        <result property="viewCount" column="view_count" />
+        <result property="likeCount" column="like_count" />
+        <result property="commentCount" column="comment_count" />
+        <result property="category" column="category" />
+        <result property="isPublic" column="is_public" />
+        <result property="isTemp" column="is_temp" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="deletedAt" column="deleted_at" />
+        <result property="thumbnail" column="thumbnail" />
+        <collection property="tags" ofType="string" column="post_id" select="selectTagNamesByPostId" />
+    </resultMap>
+
+    <sql id="postColumns">
+        post_id, member_id, title, content, view_count, like_count, comment_count, category,
+        is_public, is_temp, is_deleted, thumbnail, created_at, updated_at, deleted_at
+    </sql>
+
+    <select id="findAll" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+        FROM posts
+        WHERE is_deleted = 'N'
+          AND is_temp = 'N'
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findById" parameterType="long" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+        FROM posts
+        WHERE post_id = #{param1}
+          AND is_deleted = 'N'
+    </select>
+
+    <insert id="insert" parameterType="com.bist.mini.post.entity.Post" useGeneratedKeys="true" keyProperty="postId" keyColumn="post_id">
+        INSERT INTO posts (
+            member_id, title, content, category, is_public, is_temp, thumbnail, created_at, updated_at
+        )
+        VALUES (
+            #{memberId}, #{title}, #{content}, #{category}, #{isPublic}, #{isTemp}, #{thumbnail}, SYSDATE, SYSDATE
+        )
+    </insert>
+
+    <select id="findByMemberId" parameterType="long" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+        FROM posts
+        WHERE member_id = #{param1}
+          AND is_deleted = 'N'
+          AND is_temp = 'N'
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findTempByMemberId" parameterType="long" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+        FROM posts
+        WHERE member_id = #{param1}
+          AND is_deleted = 'N'
+          AND is_temp = 'Y'
+        ORDER BY updated_at DESC
+    </select>
+
+    <update id="updateViewCount" parameterType="long">
+        UPDATE posts
+        SET view_count = view_count + 1,
+            updated_at = SYSDATE
+        WHERE post_id = #{param1}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="updatePost" parameterType="com.bist.mini.post.entity.Post">
+        UPDATE posts
+        SET title = #{title},
+            content = #{content},
+            category = #{category},
+            is_public = #{isPublic},
+            is_temp = #{isTemp},
+            thumbnail = #{thumbnail},
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND member_id = #{memberId}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeletePost" parameterType="map">
+        UPDATE posts
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND member_id = #{memberId}
+          AND is_deleted = 'N'
+    </update>
+
+    <!-- 관련 테이블 소프트 삭제 쿼리 -->
+    <update id="softDeleteCommentsByPostId" parameterType="long">
+        UPDATE comments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeletePostTagsByPostId" parameterType="long">
+        DELETE FROM post_tags
+        WHERE post_id = #{postId}
+    </update>
+
+    <insert id="insertPostTag">
+        INSERT INTO post_tags (
+            post_id, tag_id
+        ) VALUES (
+            #{postId}, #{tagId}
+        )
+    </insert>
+
+    <update id="softDeletePostLikesByPostId" parameterType="long">
+        DELETE FROM post_likes
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeleteBookmarksByPostId" parameterType="long">
+        DELETE FROM bookmarks
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeleteAttachmentsByPostId" parameterType="long">
+        UPDATE attachments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </update>
+
+
+    <!-- 페이지네이션 및 필터링 쿼리 -->
+    <select id="findAllWithPage" resultMap="postResultMap">
+        SELECT <include refid="postColumns" />
+        FROM posts
+        WHERE is_deleted = 'N'
+          AND is_temp = 'N'
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        ORDER BY created_at DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM posts
+        WHERE is_deleted = 'N'
+          AND is_temp = 'N'
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+    </select>
+
+    <!-- 태그별 조회 -->
+    <select id="findByTag" resultMap="postResultMap">
+        SELECT p.*
+        FROM posts p
+        JOIN post_tags pt ON p.post_id = pt.post_id
+        JOIN tags t ON t.tag_id = pt.tag_id
+        WHERE t.name = #{tagName}
+          AND p.is_deleted = 'N'
+          AND p.is_temp = 'N'
+        ORDER BY p.created_at DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="countByTag" resultType="long">
+        SELECT COUNT(*)
+        FROM posts p
+        JOIN post_tags pt ON p.post_id = pt.post_id
+        JOIN tags t ON t.tag_id = pt.tag_id
+        WHERE t.name = #{tagName}
+          AND p.is_deleted = 'N'
+          AND p.is_temp = 'N'
+    </select>
+
+    <!-- 좋아요/북마크 확인 -->
+    <select id="countLike" resultType="int">
+        SELECT COUNT(*)
+        FROM post_likes
+        WHERE post_id = #{postId} AND member_id = #{memberId}
+    </select>
+
+    <select id="countBookmark" resultType="int">
+        SELECT COUNT(*)
+        FROM bookmarks
+        WHERE post_id = #{postId} AND member_id = #{memberId}
+    </select>
+
+    <select id="selectTagNamesByPostId" parameterType="long" resultType="string">
+        SELECT t.name
+        FROM post_tags pt
+                 JOIN tags t ON t.tag_id = pt.tag_id
+        WHERE pt.post_id = #{value}
+        ORDER BY t.name
+    </select>
+
+</mapper>

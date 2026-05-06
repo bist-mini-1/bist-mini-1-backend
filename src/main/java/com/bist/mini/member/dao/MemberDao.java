@@ -1,5 +1,6 @@
 package com.bist.mini.member.dao;
 
+import com.bist.mini.member.dto.JoinRequestDto;
 import com.bist.mini.member.entity.Member;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -8,4 +9,12 @@ import org.apache.ibatis.annotations.Param;
 public interface MemberDao {
 
     Member selectByLoginId(@Param("loginId") String loginId);
+
+    int countByLoginId(@Param("loginId") String loginId);
+
+    int countByEmail(@Param("email") String email);
+
+    int countByNickname(@Param("nickname") String nickname);
+
+    int insertMember(JoinRequestDto joinRequestDto);
 }

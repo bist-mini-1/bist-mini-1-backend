@@ -10,4 +10,30 @@
         AND status = 'ACTIVE'
     </select>
 
+    <select id="countByLoginId" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM members
+        WHERE login_id = #{loginId}
+    </select>
+
+    <select id="countByEmail" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM members
+        WHERE email = #{email}
+    </select>
+
+    <select id="countByNickname" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM members
+        WHERE nickname = #{nickname}
+    </select>
+
+    <insert id="insertMember" parameterType="com.bist.mini.member.dto.JoinRequestDto">
+        INSERT INTO members (
+        login_id, password, email,nickname,bio, status, created_at
+        ) VALUES (
+        #{loginId}, #{password}, #{email}, #{nickname}, #{bio}, 'ACTIVE', SYSDATE
+        )
+    </insert>
+
 </mapper>

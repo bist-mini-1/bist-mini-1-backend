@@ -2,6 +2,7 @@ package com.bist.mini.member.service;
 
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.member.dao.MemberDao;
+import com.bist.mini.member.dto.JoinRequestDto;
 import com.bist.mini.member.dto.LoginRequestDto;
 import com.bist.mini.member.dto.LoginResponseDto;
 import com.bist.mini.member.entity.Member;
@@ -37,5 +38,38 @@ public class MemberService {
                 member.getLoginId(),
                 member.getNickname()
         );
+    }
+
+    public boolean checkLoginIdDuplicate(String loginId) {
+        return memberDao.countByLoginId(loginId) > 0;
+    }
+
+    public boolean checkEmailDuplicate(String email) {
+        return memberDao.countByEmail(email) > 0;
+    }
+
+    public boolean checkNicknameDuplicate(String nickname) {
+        return memberDao.countByNickname(nickname) > 0;
+    }
+
+    public String join(JoinRequestDto joinRequestDto) {
+        if (memberDao.countByLoginId(joinRequestDto.getLoginId()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
+
+        if (memberDao.countByEmail(joinRequestDto.getEmail()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        if (memberDao.countByNickname(joinRequestDto.getNickname()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(joinRequestDto.getPassword());
+        joinRequestDto.setPassword(encodedPassword);
+
+        memberDao.insertMember(joinRequestDto);
+
+        return "회원가입이 완료되었습니다.";
     }
 }

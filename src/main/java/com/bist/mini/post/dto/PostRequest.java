@@ -7,7 +7,6 @@ import com.bist.mini.post.entity.Post;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -41,8 +40,12 @@ public class PostRequest {
    @Schema(description = "태그 목록", example = "[\"Spring\", \"JPA\"]")
    private List<String> tags;
 
-   @Schema(description = "카테고리", example = "기술")
-   private String category;
+   @Schema(description = "게시글에 연결할 일반 첨부파일 ID 목록", example = "[101, 102]")
+   private List<Long> attachmentIds;
+
+   @Schema(description = "본문에 삽입된 인라인 이미지 ID 목록", example = "[201, 202]")
+   private List<Long> inlineImageIds;
+
 
    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/thumbnail.jpg")
    private String thumbnail;
@@ -60,6 +63,7 @@ public class PostRequest {
             .isDeleted("N")
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
+            .tags(this.tags)
             .build();
    }
 }

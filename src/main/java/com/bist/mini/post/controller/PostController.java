@@ -4,13 +4,19 @@ import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
+import com.bist.mini.post.service.PostAttachmentService;
 import com.bist.mini.post.dto.PostRequest;
+import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.post.dto.AttachmentUploadResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -24,7 +30,18 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final PostAttachmentService postAttachmentService;
     private final JwtProvider jwtProvider;
+
+    @Operation(summary = "첨부파일 업로드", description = "게시글 첨부/본문 이미지 파일을 먼저 업로드하고 attachmentId를 발급받습니다.")
+    @PostMapping(value = "/attachments/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<List<AttachmentUploadResponse>> uploadAttachments(
+            @Parameter(description = "업로드 타입 (ATTACHMENT 또는 INLINE_IMAGE)", example = "INLINE_IMAGE")
+            @RequestParam String uploadType,
+            @RequestPart("files") List<MultipartFile> files
+    ) {
+        return ApiResponse.success(postAttachmentService.uploadFiles(files, uploadType));
+    }
 
     @Operation(summary = "게시글 작성", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 게시글을 작성합니다.")
     @PostMapping
@@ -34,15 +51,21 @@ public class PostController {
     ) {
         String authorization = httpRequest.getHeader("Authorization");
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
-        Post created = postService.createPost(postRequest.toEntity(memberId));
+        Post created = postService.createPost(postRequest.toEntity(memberId), postRequest);
         return ApiResponse.success(created);
     }
 
-    @Operation(summary = "게시글 목록 조회", description = "전체 공개 게시글을 조회합니다.")
+    @Operation(summary = "게시글 목록 조회 (페이지네이션)", description = "전체 공개 게시글을 페이지 단위로 조회합니다.")
     @GetMapping
-    public ApiResponse<List<Post>> getPostList() {
-        List<Post> posts = postService.getPostList();
-        return ApiResponse.success(posts);
+    public ApiResponse<PostPageResponse> getPostList(
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "한 페이지당 크기 (최대 100)", example = "10")
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PostPageResponse pageResponse = postService.getPostListWithPagination(page, size);
+        return ApiResponse.success(pageResponse);
     }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 조회합니다. 자신이 아닌 글이면 조회수를 증가시킵니다.")
@@ -82,7 +105,7 @@ public class PostController {
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
         Post post = postRequest.toEntity(memberId);
         post.setPostId(id);
-        Post updated = postService.updatePost(post);
+        Post updated = postService.updatePost(post, postRequest);
         return ApiResponse.success(updated);
     }
 

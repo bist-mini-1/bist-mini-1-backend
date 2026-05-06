@@ -3,13 +3,19 @@ package com.bist.mini.post.service;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.post.dao.PostDAO;
+import com.bist.mini.post.dao.TagDAO;
+import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.entity.Post;
+import com.bist.mini.post.entity.Tag;
+import com.bist.mini.post.dto.PostPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
-
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -17,15 +23,30 @@ import java.util.List;
 public class PostService {
 
    private final PostDAO postDAO;
+   private final TagDAO tagDAO;
+   private final PostAttachmentService postAttachmentService;
 
    @Transactional
-   public Post createPost(Post post) {
+   public Post createPost(Post post, PostRequest postRequest) {
        postDAO.insert(post);
-       return post;
+       syncPostTags(post.getPostId(), post.getTags());
+       postAttachmentService.syncPostAttachments(post.getPostId(), postRequest);
+       return loadPost(post.getPostId());
    }
 
    public List<Post> getPostList() {
        return postDAO.findAll();
+   }
+
+   public PostPageResponse getPostListWithPagination(int page, int size) {
+       if (page < 0) page = 0;
+       if (size <= 0 || size > 100) size = 10;
+
+       int offset = page * size;
+       List<Post> posts = postDAO.findAllWithPage(offset, size);
+       long totalElements = postDAO.countAll();
+
+       return PostPageResponse.of(posts, page, size, totalElements);
    }
 
    public List<Post> getPostListByMember(Long memberId) {
@@ -46,7 +67,6 @@ public class PostService {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
 
-       // 자신의 글이 아닐 때만 조회수 증가
        if (!post.getMemberId().equals(memberId)) {
            postDAO.updateViewCount(postId);
        }
@@ -55,30 +75,30 @@ public class PostService {
    }
 
    @Transactional
-   public Post updatePost(Post post) {
+   public Post updatePost(Post post, PostRequest postRequest) {
        int updated = postDAO.updatePost(post);
        if (updated == 0) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
+       postDAO.softDeletePostTagsByPostId(post.getPostId());
+       syncPostTags(post.getPostId(), post.getTags());
+       postAttachmentService.syncPostAttachments(post.getPostId(), postRequest);
        return postDAO.findById(post.getPostId());
    }
 
    @Transactional
    public void deletePost(Long postId, Long memberId) {
-       // 게시글 존재 여부 확인
        Post post = postDAO.findById(postId);
        if (post == null || !post.getMemberId().equals(memberId)) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
 
-       // 관련 테이블 데이터 소프트 삭제 (재귀적)
        postDAO.softDeleteCommentsByPostId(postId);
        postDAO.softDeleteAttachmentsByPostId(postId);
        postDAO.softDeletePostLikesByPostId(postId);
        postDAO.softDeleteBookmarksByPostId(postId);
        postDAO.softDeletePostTagsByPostId(postId);
 
-       // 게시글 소프트 삭제
        int deleted = postDAO.softDeletePost(postId, memberId);
        if (deleted == 0) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
@@ -93,5 +113,48 @@ public class PostService {
    public List<Post> getTempPostList(Long memberId) {
        return postDAO.findTempByMemberId(memberId);
    }
-}
 
+   private Post loadPost(Long postId) {
+       Post post = postDAO.findById(postId);
+       if (post == null) {
+           throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+       }
+       return post;
+   }
+
+   private void syncPostTags(Long postId, List<String> tags) {
+       if (tags == null || tags.isEmpty()) {
+           return;
+       }
+
+       Set<String> normalizedTags = new LinkedHashSet<>();
+       for (String tagName : tags) {
+           if (tagName == null) {
+               continue;
+           }
+           String normalized = tagName.trim();
+           if (!normalized.isEmpty()) {
+               normalizedTags.add(normalized);
+           }
+       }
+
+       for (String tagName : normalizedTags) {
+           Long tagId = getOrCreateTagId(tagName);
+           postDAO.insertPostTag(postId, tagId);
+       }
+   }
+
+   private Long getOrCreateTagId(String tagName) {
+       Tag existing = tagDAO.findByName(tagName);
+       if (existing != null) {
+           return existing.getTagId();
+       }
+
+       Tag created = Tag.builder()
+             .name(tagName)
+             .createdAt(LocalDateTime.now())
+             .build();
+       tagDAO.insert(created);
+       return created.getTagId();
+   }
+}

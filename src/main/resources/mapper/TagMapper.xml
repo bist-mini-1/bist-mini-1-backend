@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.post.dao.TagDAO">
+
+    <select id="findByName" resultType="com.bist.mini.post.entity.Tag">
+        SELECT tag_id, name, created_at
+        FROM tags
+        WHERE name = #{name}
+    </select>
+
+    <select id="findById" resultType="com.bist.mini.post.entity.Tag">
+        SELECT tag_id, name, created_at
+        FROM tags
+        WHERE tag_id = #{tagId}
+    </select>
+
+    <insert id="insert" parameterType="com.bist.mini.post.entity.Tag" useGeneratedKeys="true" keyProperty="tagId" keyColumn="tag_id">
+        INSERT INTO tags (
+            name, created_at
+        ) VALUES (
+            #{name}, SYSDATE
+        )
+    </insert>
+
+</mapper>

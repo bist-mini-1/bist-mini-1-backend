@@ -32,10 +32,17 @@ public interface PostDAO {
 
    int softDeletePostTagsByPostId(Long postId);
 
+   int insertPostTag(@Param("postId") Long postId, @Param("tagId") Long tagId);
+
    int softDeletePostLikesByPostId(Long postId);
 
    int softDeleteBookmarksByPostId(Long postId);
 
    int softDeleteAttachmentsByPostId(Long postId);
+
+   // 페이지네이션
+   List<Post> findAllWithPage(@Param("offset") int offset, @Param("limit") int limit);
+
+   long countAll();
 
 }

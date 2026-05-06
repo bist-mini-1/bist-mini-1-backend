@@ -1,27 +1,31 @@
-  server:
-    port: ${SERVER_PORT:8080}
+server:
+  port: ${SERVER_PORT}
 
-  spring:
-    application:
-      name: bist-mini-backend
+spring:
+  application:
+    name: bist-mini-backend
 
-    datasource:
-      driver-class-name: oracle.jdbc.OracleDriver
-      url: ${DB_URL:jdbc:oracle:thin:@localhost:1521/xepdb1}
-      username: ${DB_USERNAME:sys}
-      password: ${DB_PASSWORD:oracle}
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
-  mybatis:
-    mapper-locations: classpath:mapper/**/*.xml
-    type-aliases-package: com.bist.mini.entity
-    configuration:
-      map-underscore-to-camel-case: true
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.bist.mini.member.entity
+  configuration:
+    map-underscore-to-camel-case: true
 
-  springdoc:
-    api-docs:
-      path: /api-docs
-    swagger-ui:
-      path: /swagger-ui.html
-      operations-sorter: alpha
-      tags-sorter: alpha
-      display-request-duration: true
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    display-request-duration: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}

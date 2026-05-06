@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.member.dao.MemberDao">
+
+    <select id="selectByLoginId" parameterType="string" resultType="Member">
+        SELECT
+            member_id, login_id, password, email, nickname, bio, profile_image, status, created_at, updated_at, deleted_at
+        FROM members
+        WHERE login_id = #{loginId}
+        AND status = 'ACTIVE'
+    </select>
+
+</mapper>

@@ -18,7 +18,7 @@ import lombok.Setter;
 public class PostPageResponse {
 
     @Schema(description = "게시글 목록")
-    private List<Post> content;
+    private List<PostResponse> content;
 
     @Schema(description = "현재 페이지 (0부터 시작)", example = "0")
     private int currentPage;
@@ -41,7 +41,7 @@ public class PostPageResponse {
     public static PostPageResponse of(List<Post> content, int currentPage, int pageSize, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / pageSize);
         return PostPageResponse.builder()
-                .content(content)
+                .content(PostResponse.fromList(content))
                 .currentPage(currentPage)
                 .pageSize(pageSize)
                 .totalElements(totalElements)

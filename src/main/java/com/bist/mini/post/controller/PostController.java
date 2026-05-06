@@ -6,6 +6,7 @@ import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
 import com.bist.mini.post.service.PostAttachmentService;
 import com.bist.mini.post.dto.PostRequest;
+import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.post.dto.AttachmentUploadResponse;
 
@@ -14,121 +15,105 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-/**
- * Post API 컨트롤러
- */
-@Tag(name = "Post", description = "Post 관리 API")
+@Tag(name = "Post", description = "Post Management API")
 @RestController
 @RequestMapping("/api/post")
 @RequiredArgsConstructor
+@Slf4j
 public class PostController {
 
     private final PostService postService;
     private final PostAttachmentService postAttachmentService;
     private final JwtProvider jwtProvider;
 
-    @Operation(summary = "첨부파일 업로드", description = "게시글 첨부/본문 이미지 파일을 먼저 업로드하고 attachmentId를 발급받습니다.")
+    @Operation(summary = "Upload Attachments", description = "Upload files first and get attachmentIds.")
     @PostMapping(value = "/attachments/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<List<AttachmentUploadResponse>> uploadAttachments(
-            @Parameter(description = "업로드 타입 (ATTACHMENT 또는 INLINE_IMAGE)", example = "INLINE_IMAGE")
-            @RequestParam String uploadType,
+            @Parameter(description = "Upload Type (ATTACHMENT or INLINE_IMAGE)", example = "INLINE_IMAGE")
+            @RequestPart("uploadType") String uploadType,
             @RequestPart("files") List<MultipartFile> files
     ) {
         return ApiResponse.success(postAttachmentService.uploadFiles(files, uploadType));
     }
 
-    @Operation(summary = "게시글 작성", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 게시글을 작성합니다.")
-    @PostMapping
-    public ApiResponse<Post> createPost(
-            HttpServletRequest httpRequest,
-            @RequestBody @Valid PostRequest postRequest
+    @Operation(summary = "Create Post", description = "Create a post with JWT authentication (Multipart Form Support).")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<PostResponse> createPost(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token,
+            @ModelAttribute @Valid PostRequest postRequest
     ) {
-        String authorization = httpRequest.getHeader("Authorization");
-        Long memberId = jwtProvider.getMemberIdFromToken(authorization);
-        Post created = postService.createPost(postRequest.toEntity(memberId), postRequest);
-        return ApiResponse.success(created);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        Post created = postService.createPost(memberId, postRequest);
+        return ApiResponse.success(PostResponse.from(created));
     }
 
-    @Operation(summary = "게시글 목록 조회 (페이지네이션)", description = "전체 공개 게시글을 페이지 단위로 조회합니다.")
+    @Operation(summary = "Get Post List", description = "Get public posts with pagination.")
     @GetMapping
     public ApiResponse<PostPageResponse> getPostList(
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
+            @Parameter(description = "Page number (starts from 0)", example = "0")
             @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "한 페이지당 크기 (최대 100)", example = "10")
+            @Parameter(description = "Page size (max 100)", example = "10")
             @RequestParam(defaultValue = "10") int size
     ) {
         PostPageResponse pageResponse = postService.getPostListWithPagination(page, size);
         return ApiResponse.success(pageResponse);
     }
 
-    @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 조회합니다. 자신이 아닌 글이면 조회수를 증가시킵니다.")
+    @Operation(summary = "Get Post Detail", description = "Get a single post by ID.")
     @GetMapping("/{id}")
-    public ApiResponse<Post> getPostDetail(
+    public ApiResponse<PostResponse> getPostDetail(
             @PathVariable Long id,
-            HttpServletRequest httpRequest
+            @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String token
     ) {
         Long memberId = null;
-        try {
-            String authorization = httpRequest.getHeader("Authorization");
-            if (authorization != null && !authorization.isEmpty()) {
-                memberId = jwtProvider.getMemberIdFromToken(authorization);
+        if (token != null && !token.isEmpty()) {
+            try {
+                memberId = jwtProvider.getMemberIdFromToken(token);
+            } catch (Exception e) {
+                // Ignore invalid token
             }
-        } catch (Exception e) {
-            // JWT 파싱 실패 시 계속 진행 (비로그인 사용자)
         }
 
-        Post post;
-        if (memberId != null) {
-            post = postService.getPostDetailWithViewCount(id, memberId);
-        } else {
-            post = postService.getPostDetail(id);
-            postService.incrementViewCount(id);
-        }
-        return ApiResponse.success(post);
+        Post post = postService.getPostDetail(id, memberId);
+        return ApiResponse.success(PostResponse.from(post));
     }
 
-    @Operation(summary = "게시글 수정", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 본인의 게시글을 수정합니다.")
-    @PutMapping("/{id}")
-    public ApiResponse<Post> updatePost(
+    @Operation(summary = "Update Post", description = "Update own post with JWT authentication (Multipart Form Support).")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<PostResponse> updatePost(
             @PathVariable Long id,
-            HttpServletRequest httpRequest,
-            @RequestBody @Valid PostRequest postRequest
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token,
+            @ModelAttribute @Valid PostRequest postRequest
     ) {
-        String authorization = httpRequest.getHeader("Authorization");
-        Long memberId = jwtProvider.getMemberIdFromToken(authorization);
-        Post post = postRequest.toEntity(memberId);
-        post.setPostId(id);
-        Post updated = postService.updatePost(post, postRequest);
-        return ApiResponse.success(updated);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        Post updated = postService.updatePost(id, memberId, postRequest);
+        return ApiResponse.success(PostResponse.from(updated));
     }
 
-    @Operation(summary = "게시글 삭제", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 본인의 게시글을 삭제합니다.")
+    @Operation(summary = "Delete Post", description = "Delete own post with JWT authentication.")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletePost(
             @PathVariable Long id,
-            HttpServletRequest httpRequest
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token
     ) {
-        String authorization = httpRequest.getHeader("Authorization");
-        Long memberId = jwtProvider.getMemberIdFromToken(authorization);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
         postService.deletePost(id, memberId);
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "임시저장 게시글 목록 조회", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 임시저장 게시글을 조회합니다.")
+    @Operation(summary = "Get Temp Posts", description = "Get own draft posts with JWT authentication.")
     @GetMapping("/temp/list")
-    public ApiResponse<List<Post>> getTempPostList(
-            HttpServletRequest httpRequest
+    public ApiResponse<List<PostResponse>> getTempPostList(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token
     ) {
-        String authorization = httpRequest.getHeader("Authorization");
-        Long memberId = jwtProvider.getMemberIdFromToken(authorization);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
         List<Post> tempPosts = postService.getTempPostList(memberId);
-        return ApiResponse.success(tempPosts);
+        return ApiResponse.success(PostResponse.fromList(tempPosts));
     }
 }

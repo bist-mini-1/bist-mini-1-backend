@@ -2,6 +2,7 @@ package com.bist.mini.post.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bist.mini.post.entity.Post;
 
@@ -30,12 +31,12 @@ public class PostRequest {
    @NotBlank(message = "공개 여부를 선택해주세요.")
    @Pattern(regexp = "^[YN]$", message = "공개 여부는 Y 또는 N이어야 합니다.")
    @Schema(description = "공개 여부", example = "Y")
-   private String is_public;
+   private String isPublic;
 
    @NotBlank(message = "게시글 임시저장 여부를 선택해주세요.")
    @Pattern(regexp = "^[YN]$", message = "임시저장 여부는 Y 또는 N이어야 합니다.")
    @Schema(description = "임시저장 여부", example = "N")
-   private String is_temp;
+   private String isTemp;
 
    @Schema(description = "태그 목록", example = "[\"Spring\", \"JPA\"]")
    private List<String> tags;
@@ -50,6 +51,9 @@ public class PostRequest {
    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/thumbnail.jpg")
    private String thumbnail;
 
+   @Schema(description = "썸네일 이미지 파일 (직접 업로드 시)")
+   private MultipartFile thumbnailFile;
+
    public Post toEntity(Long memberId) {
       return Post.builder()
             .memberId(memberId)
@@ -58,9 +62,10 @@ public class PostRequest {
             .viewCount(0L)
             .likeCount(0L)
             .commentCount(0L)
-            .isPublic(this.is_public)
-            .isTemp(this.is_temp)
+            .isPublic(this.isPublic)
+            .isTemp(this.isTemp)
             .isDeleted("N")
+            .thumbnail(this.thumbnail)
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .tags(this.tags)

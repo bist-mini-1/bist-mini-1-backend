@@ -82,4 +82,37 @@
           AND is_deleted = 'N'
     </update>
 
+    <!-- 관련 테이블 소프트 삭제 쿼리 -->
+    <update id="softDeleteCommentsByPostId" parameterType="long">
+        UPDATE comments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeletePostTagsByPostId" parameterType="long">
+        DELETE FROM post_tags
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeletePostLikesByPostId" parameterType="long">
+        DELETE FROM post_likes
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeleteBookmarksByPostId" parameterType="long">
+        DELETE FROM bookmarks
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeleteAttachmentsByPostId" parameterType="long">
+        UPDATE attachments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </update>
+
 </mapper>

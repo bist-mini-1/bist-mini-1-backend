@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 /**
  * Post API 컨트롤러
@@ -39,8 +40,8 @@ public class PostController {
 
     @Operation(summary = "게시글 목록 조회", description = "전체 공개 게시글을 조회합니다.")
     @GetMapping
-    public ApiResponse<java.util.List<Post>> getPostList() {
-        java.util.List<Post> posts = postService.getPostList();
+    public ApiResponse<List<Post>> getPostList() {
+        List<Post> posts = postService.getPostList();
         return ApiResponse.success(posts);
     }
 
@@ -80,12 +81,12 @@ public class PostController {
 
     @Operation(summary = "임시저장 게시글 목록 조회", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 임시저장 게시글을 조회합니다.")
     @GetMapping("/temp/list")
-    public ApiResponse<java.util.List<Post>> getTempPostList(
+    public ApiResponse<List<Post>> getTempPostList(
             HttpServletRequest httpRequest
     ) {
         String authorization = httpRequest.getHeader("Authorization");
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
-        java.util.List<Post> tempPosts = postService.getTempPostList(memberId);
+        List<Post> tempPosts = postService.getTempPostList(memberId);
         return ApiResponse.success(tempPosts);
     }
 }

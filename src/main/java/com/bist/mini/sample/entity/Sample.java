@@ -1,4 +1,4 @@
-package com.bist.mini.entity;
+package com.bist.mini.sample.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bist.mini.dao.SampleDAO">
+<mapper namespace="com.bist.mini.sample.dao.SampleDAO">
 
     <!-- 샘플 엔티티 결과 매핑 -->
-    <resultMap id="SampleResultMap" type="com.bist.mini.entity.Sample">
+    <resultMap id="SampleResultMap" type="com.bist.mini.sample.entity.Sample">
         <id property="id" column="SAMPLE_ID" />
         <result property="testStr" column="TESTSTR" />
     </resultMap>
@@ -27,7 +27,7 @@
     </select>
 
     <!-- 샘플 등록 -->
-    <insert id="insert" parameterType="com.bist.mini.entity.Sample">
+    <insert id="insert" parameterType="com.bist.mini.sample.entity.Sample">
         <selectKey keyProperty="id" resultType="long" order="BEFORE">
             SELECT SEQ_SAMPLE_ID.NEXTVAL FROM DUAL
         </selectKey>

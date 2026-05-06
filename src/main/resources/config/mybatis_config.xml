@@ -11,7 +11,4 @@
 		<!-- 자바필드는 캐멀케이스/컬럼이름은 _ 로 연결 -->
 		<setting name="mapUnderscoreToCamelCase" value="true"/>
 	</settings>
-	<typeAliases>
-		<typeAlias alias="Sample" type="com.bist.mini.sample.entity.Sample"/>
-	</typeAliases>
 </configuration>

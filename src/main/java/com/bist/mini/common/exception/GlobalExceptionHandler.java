@@ -17,13 +17,19 @@ public class GlobalExceptionHandler {
     /**
      * 프로젝트 전용 비즈니스 예외 처리
      */
+    /**
+     * 프로젝트 전용 비즈니스 예외 처리
+     */
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
-        log.error("handleCustomException: {}", e.getErrorCode());
+        log.error("handleCustomException: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
+        // Exception에 직접 입력한 상세 메시지가 있으면 사용, 없으면 에러 코드의 기본 메시지 사용
+        String message = (e.getMessage() != null && !e.getMessage().isBlank()) ? e.getMessage() : errorCode.getMessage();
+        
         return ResponseEntity
                 .status(errorCode.getStatus().value())
-                .body(ApiResponse.error(errorCode.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     /**

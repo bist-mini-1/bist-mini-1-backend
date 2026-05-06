@@ -37,4 +37,17 @@ public class JwtProvider {
                 .signWith(secretKey)
                 .compact();
     }
+
+    /**
+     * 토큰에서 memberId 추출
+     */
+    public Long getMemberIdFromToken(String token) {
+        String subject = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+        return Long.parseLong(subject);
+    }
 }

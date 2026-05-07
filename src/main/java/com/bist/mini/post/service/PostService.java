@@ -4,10 +4,7 @@ import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.post.dao.PostDao;
 import com.bist.mini.post.dao.TagDao;
-import com.bist.mini.post.dto.PostListResponse;
-import com.bist.mini.post.dto.PostRequest;
-import com.bist.mini.post.dto.PostResponse;
-import com.bist.mini.post.dto.PostTagDto;
+import com.bist.mini.post.dto.*;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
 import com.bist.mini.attachment.service.AttachmentService;
@@ -176,14 +173,25 @@ public class PostService {
        return created.getTagId();
    }
 
-    public List<PostListResponse> getPostList() {
-        List<PostListResponse> posts = postDao.selectPostList();
+    public PostPageResponse getPostList(int page, int size) {
+        int offset = (page - 1) * size;
+
+        List<PostListResponse> posts = postDao.selectPostList(offset, size);
 
         for (PostListResponse post : posts) {
             List<String> tags = postDao.selectTagNamesByPostId(post.getPostId());
             post.setTags(tags);
         }
 
-        return posts;
+        long totalCount = postDao.countPostList();
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+
+        return PostPageResponse.builder()
+                .posts(posts)
+                .page(page)
+                .size(size)
+                .totalCount(totalCount)
+                .totalPages(totalPages)
+                .build();
     }
 }

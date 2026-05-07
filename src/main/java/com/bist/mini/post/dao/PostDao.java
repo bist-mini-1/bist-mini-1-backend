@@ -41,12 +41,14 @@ public interface PostDao {
 
    int softDeleteAttachmentsByPostId(Long postId);
 
-   // 페이지네이션
-//   List<Post> findAllWithPage(@Param("offset") int offset, @Param("limit") int limit);
-
    long countAll();
 
-   List<PostListResponse> selectPostList();
-
    List<String> selectTagNamesByPostId(@Param("postId") Long postId);
+
+   List<PostListResponse> selectPostList(
+           @Param("offset") int offset,
+           @Param("size") int size
+   );
+
+   long countPostList();
 }

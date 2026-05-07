@@ -6,6 +6,7 @@ import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
 import com.bist.mini.post.dto.PostRequest;
+import com.bist.mini.post.dto.PostResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,13 +30,13 @@ public class PostController {
 
     @Operation(summary = "게시글 작성", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 게시글을 작성합니다.")
     @PostMapping
-    public ApiResponse<Post> createPost(
+    public ApiResponse<PostResponse> createPost(
             HttpServletRequest httpRequest,
             @RequestBody @Valid PostRequest postRequest
     ) {
         String authorization = httpRequest.getHeader("Authorization");
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
-        Post created = postService.createPost(postRequest.toEntity(memberId), postRequest);
+        PostResponse created = postService.createPost(postRequest.toEntity(memberId), postRequest);
         return ApiResponse.success(created);
     }
 
@@ -54,7 +55,7 @@ public class PostController {
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 조회합니다. 자신이 아닌 글이면 조회수를 증가시킵니다.")
     @GetMapping("/{id}")
-    public ApiResponse<Post> getPostDetail(
+    public ApiResponse<PostResponse> getPostDetail(
             @PathVariable Long id,
             HttpServletRequest httpRequest
     ) {
@@ -68,7 +69,7 @@ public class PostController {
             // JWT 파싱 실패 시 계속 진행 (비로그인 사용자)
         }
 
-        Post post;
+        PostResponse post;
         if (memberId != null) {
             post = postService.getPostDetailWithViewCount(id, memberId);
         } else {
@@ -80,7 +81,7 @@ public class PostController {
 
     @Operation(summary = "게시글 수정", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 본인의 게시글을 수정합니다.")
     @PutMapping("/{id}")
-    public ApiResponse<Post> updatePost(
+    public ApiResponse<PostResponse> updatePost(
             @PathVariable Long id,
             HttpServletRequest httpRequest,
             @RequestBody @Valid PostRequest postRequest
@@ -89,7 +90,7 @@ public class PostController {
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
         Post post = postRequest.toEntity(memberId);
         post.setPostId(id);
-        Post updated = postService.updatePost(post, postRequest);
+        PostResponse updated = postService.updatePost(post, postRequest);
         return ApiResponse.success(updated);
     }
 
@@ -107,12 +108,12 @@ public class PostController {
 
     @Operation(summary = "임시저장 게시글 목록 조회", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 임시저장 게시글을 조회합니다.")
     @GetMapping("/temp/list")
-    public ApiResponse<List<Post>> getTempPostList(
+    public ApiResponse<List<PostResponse>> getTempPostList(
             HttpServletRequest httpRequest
     ) {
         String authorization = httpRequest.getHeader("Authorization");
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
-        List<Post> tempPosts = postService.getTempPostList(memberId);
+        List<PostResponse> tempPosts = postService.getTempPostList(memberId);
         return ApiResponse.success(tempPosts);
     }
 

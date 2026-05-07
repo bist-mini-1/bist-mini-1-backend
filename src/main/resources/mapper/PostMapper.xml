@@ -16,7 +16,6 @@
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
         <result property="deletedAt" column="deleted_at" />
-        <collection property="tags" ofType="string" column="post_id" select="selectTagNamesByPostId" />
     </resultMap>
 
     <select id="findAll" resultMap="postResultMap">

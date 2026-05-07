@@ -2,8 +2,10 @@ package com.bist.mini.post.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.bist.mini.post.entity.Post;
+import com.bist.mini.post.entity.Tag;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -63,7 +65,6 @@ public class PostRequest {
             .isDeleted("N")
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
-            .tags(this.tags)
             .build();
    }
 }

@@ -1,8 +1,10 @@
 package com.bist.mini.post.dao;
 
 import com.bist.mini.post.entity.Tag;
+import com.bist.mini.post.dto.PostTagDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import java.util.List;
 
 @Mapper
 public interface TagDao {
@@ -12,4 +14,8 @@ public interface TagDao {
     Tag findById(@Param("tagId") Long tagId);
 
     int insert(Tag tag);
+
+    List<Tag> findTagsByPostId(@Param("postId") Long postId);
+
+    List<PostTagDto> findTagsByPostIds(@Param("postIds") List<Long> postIds);
 }

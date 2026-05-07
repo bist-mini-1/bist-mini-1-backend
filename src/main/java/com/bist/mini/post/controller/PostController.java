@@ -4,9 +4,8 @@ import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
-import com.bist.mini.post.service.PostAttachmentService;
 import com.bist.mini.post.dto.PostRequest;
-import com.bist.mini.post.dto.AttachmentUploadResponse;
+import com.bist.mini.post.dto.PostPageResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,18 +28,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
-    private final PostAttachmentService postAttachmentService;
     private final JwtProvider jwtProvider;
-
-    @Operation(summary = "첨부파일 업로드", description = "게시글 첨부/본문 이미지 파일을 먼저 업로드하고 attachmentId를 발급받습니다.")
-    @PostMapping(value = "/attachments/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<List<AttachmentUploadResponse>> uploadAttachments(
-            @Parameter(description = "업로드 타입 (ATTACHMENT 또는 INLINE_IMAGE)", example = "INLINE_IMAGE")
-            @RequestParam String uploadType,
-            @RequestPart("files") List<MultipartFile> files
-    ) {
-        return ApiResponse.success(postAttachmentService.uploadFiles(files, uploadType));
-    }
 
     @Operation(summary = "게시글 작성", description = "Authorization 헤더의 JWT에서 memberId를 추출하여 게시글을 작성합니다.")
     @PostMapping

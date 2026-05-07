@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bist.mini.post.dao.TagDAO">
+<mapper namespace="com.bist.mini.post.dao.TagDao">
 
     <select id="findByName" resultType="com.bist.mini.post.entity.Tag">
         SELECT tag_id, name, created_at
@@ -21,5 +21,24 @@
             #{name}, SYSDATE
         )
     </insert>
+
+    <select id="findTagsByPostId" parameterType="long" resultType="com.bist.mini.post.entity.Tag">
+        SELECT t.tag_id as tagId, t.name as name, t.created_at as createdAt
+        FROM post_tags pt
+        JOIN tags t ON pt.tag_id = t.tag_id
+        WHERE pt.post_id = #{postId}
+        ORDER BY t.name
+    </select>
+
+    <select id="findTagsByPostIds" resultType="com.bist.mini.post.dto.PostTagDto">
+        SELECT pt.post_id as postId, t.tag_id as "tag.tagId", t.name as "tag.name", t.created_at as "tag.createdAt"
+        FROM post_tags pt
+        JOIN tags t ON pt.tag_id = t.tag_id
+        WHERE pt.post_id IN
+        <foreach item="id" collection="postIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY pt.post_id, t.name
+    </select>
 
 </mapper>

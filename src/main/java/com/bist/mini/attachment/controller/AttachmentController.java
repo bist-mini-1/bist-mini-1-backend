@@ -60,7 +60,8 @@ public class AttachmentController {
         Attachment attachment = attachmentService.getAttachment(attachmentId);
 
         return ResponseEntity.ok()
-                .header("Content-Type", attachment.getFile_type())
+                .contentType(MediaType.parseMediaType(attachment.getFile_type()))
+                .contentLength(attachment.getFile_data().length)
                 .body(attachment.getFile_data());
     }
 }

@@ -2,8 +2,6 @@ package com.bist.mini.post.dto;
 
 import java.util.List;
 
-import com.bist.mini.post.entity.Post;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +16,7 @@ import lombok.Setter;
 public class PostPageResponse {
 
     @Schema(description = "게시글 목록")
-    private List<Post> content;
+    private List<PostResponse> content;
 
     @Schema(description = "현재 페이지 (0부터 시작)", example = "0")
     private int currentPage;
@@ -38,7 +36,7 @@ public class PostPageResponse {
     @Schema(description = "마지막 페이지 여부", example = "false")
     private boolean last;
 
-    public static PostPageResponse of(List<Post> content, int currentPage, int pageSize, long totalElements) {
+    public static PostPageResponse of(List<PostResponse> content, int currentPage, int pageSize, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / pageSize);
         return PostPageResponse.builder()
                 .content(content)

@@ -10,7 +10,7 @@ import java.util.List;
  * Post 데이터 접근 객체 (MyBatis Mapper)
  */
 @Mapper
-public interface PostDAO {
+public interface PostDao {
 
    List<Post> findAll();
 

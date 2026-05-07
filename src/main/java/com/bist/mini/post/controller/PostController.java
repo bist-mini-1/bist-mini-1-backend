@@ -2,6 +2,7 @@ package com.bist.mini.post.controller;
 
 import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.annotation.LoginMember;
+import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.entity.Post;
@@ -39,12 +40,12 @@ public class PostController {
         return ApiResponse.success(postService.convertToResponse(created, memberId));
     }
 
-    @Operation(summary = "게시글 목록 조회", description = "전체 공개 게시글 목록을 조회합니다.")
+    @Operation(summary = "게시글 목록 조회", description = "전체 공개 게시글 목록을 페이징 처리하여 조회합니다.")
     @GetMapping
-    public ApiResponse<List<PostResponse>> getPostList(
-            @LoginMember(required = false) Long memberId) {
-        List<Post> posts = postService.getPostList();
-        return ApiResponse.success(postService.convertToResponses(posts, memberId));
+    public ApiResponse<PostPageResponse> getPostList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ApiResponse.success(postService.getPostList(page, size));
     }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 상세 조회합니다.")

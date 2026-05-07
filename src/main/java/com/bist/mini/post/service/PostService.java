@@ -4,6 +4,8 @@ import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.post.dao.PostDao;
 import com.bist.mini.post.dao.TagDao;
+import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.dto.PostTagDto;
@@ -46,6 +48,21 @@ public class PostService {
             postDao.updatePost(post);
         }
         return postDao.findById(post.getPostId());
+    }
+
+    public PostPageResponse getPostList(int page, int size) {
+        int offset = (page - 1) * size;
+        List<PostListResponse> posts = postDao.selectPostList(offset, size);
+        long totalCount = postDao.countPostList();
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+
+        return PostPageResponse.builder()
+                .posts(posts)
+                .page(page)
+                .size(size)
+                .totalCount(totalCount)
+                .totalPages(totalPages)
+                .build();
     }
 
     public List<Post> getPostList() {

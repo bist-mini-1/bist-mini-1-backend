@@ -18,4 +18,6 @@ public interface AttachmentDao {
     int bindToPost(@Param("postId") Long postId, @Param("ids") List<Long> ids);
 
     int softDeleteByIds(@Param("ids") List<Long> ids);
+
+    Attachment selectAttachmentById(@Param("attachmentId") Long attachmentId);
 }

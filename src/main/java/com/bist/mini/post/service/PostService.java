@@ -4,7 +4,7 @@ import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.post.dao.PostDao;
 import com.bist.mini.post.dao.TagDao;
-import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.dto.PostTagDto;
@@ -42,23 +42,6 @@ public class PostService {
            postDao.updatePost(post);
        }
        return loadPostResponse(post.getPostId());
-   }
-
-   public List<PostResponse> getPostList() {
-       List<Post> posts = postDao.findAll();
-       return mapToPostResponses(posts);
-   }
-
-   public PostPageResponse getPostListWithPagination(int page, int size) {
-       if (page < 0) page = 0;
-       if (size <= 0 || size > 100) size = 10;
-
-       int offset = page * size;
-       List<Post> posts = postDao.findAllWithPage(offset, size);
-       long totalElements = postDao.countAll();
-
-       List<PostResponse> content = mapToPostResponses(posts);
-       return PostPageResponse.of(content, page, size, totalElements);
    }
 
    public List<PostResponse> getPostListByMember(Long memberId) {
@@ -192,4 +175,15 @@ public class PostService {
        tagDao.insert(created);
        return created.getTagId();
    }
+
+    public List<PostListResponse> getPostList() {
+        List<PostListResponse> posts = postDao.selectPostList();
+
+        for (PostListResponse post : posts) {
+            List<String> tags = postDao.selectTagNamesByPostId(post.getPostId());
+            post.setTags(tags);
+        }
+
+        return posts;
+    }
 }

@@ -1,5 +1,6 @@
 package com.bist.mini.post.dao;
 
+import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -41,8 +42,11 @@ public interface PostDao {
    int softDeleteAttachmentsByPostId(Long postId);
 
    // 페이지네이션
-   List<Post> findAllWithPage(@Param("offset") int offset, @Param("limit") int limit);
+//   List<Post> findAllWithPage(@Param("offset") int offset, @Param("limit") int limit);
 
    long countAll();
 
+   List<PostListResponse> selectPostList();
+
+   List<String> selectTagNamesByPostId(@Param("postId") Long postId);
 }

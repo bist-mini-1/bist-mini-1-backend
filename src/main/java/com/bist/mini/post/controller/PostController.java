@@ -2,7 +2,7 @@ package com.bist.mini.post.controller;
 
 import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.jwt.JwtProvider;
-import com.bist.mini.post.dto.PostListResponse;
+import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
 import com.bist.mini.post.dto.PostRequest;
@@ -118,7 +118,10 @@ public class PostController {
     }
 
     @GetMapping
-    public List<PostListResponse> getPostList() {
-        return postService.getPostList();
+    public PostPageResponse getPostList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return postService.getPostList(page, size);
     }
 }

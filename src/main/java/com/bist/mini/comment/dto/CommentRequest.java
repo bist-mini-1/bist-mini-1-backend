@@ -27,4 +27,13 @@ public class CommentRequest {
     @Schema(description = "댓글 내용", example = "정말 유익한 포스팅이네요!")
     private String content;
 
+    public com.bist.mini.comment.entity.Comment toEntity(Long memberId) {
+        return com.bist.mini.comment.entity.Comment.builder()
+                .postId(this.postId)
+                .memberId(memberId)
+                .parentId(this.parentId)
+                .content(this.content)
+                .isDeleted(com.bist.mini.common.enums.DeleteStatus.N)
+                .build();
+    }
 }

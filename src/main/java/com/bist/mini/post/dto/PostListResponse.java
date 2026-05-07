@@ -23,4 +23,7 @@ public class PostListResponse {
     private String thumbnailUrl;
 
     private List<String> tags;
+
+    private Boolean isLiked;
+    private Boolean isBookmarked;
 }

@@ -50,7 +50,13 @@ public class PostResponse {
     @Schema(description = "태그 목록")
     private List<Tag> tags;
 
-    public static PostResponse of(Post post, List<Tag> tags) {
+    @Schema(description = "좋아요 여부")
+    private Boolean isLiked;
+
+    @Schema(description = "북마크 여부")
+    private Boolean isBookmarked;
+
+    public static PostResponse of(Post post, List<Tag> tags, Boolean isLiked, Boolean isBookmarked) {
         return PostResponse.builder()
                 .postId(post.getPostId())
                 .memberId(post.getMemberId())
@@ -64,6 +70,8 @@ public class PostResponse {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .tags(tags)
+                .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
                 .build();
     }
 }

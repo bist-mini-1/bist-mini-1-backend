@@ -6,7 +6,6 @@ import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
 import com.bist.mini.post.service.PostAttachmentService;
 import com.bist.mini.post.dto.PostRequest;
-import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.post.dto.AttachmentUploadResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,18 +54,18 @@ public class PostController {
         return ApiResponse.success(created);
     }
 
-    @Operation(summary = "게시글 목록 조회 (페이지네이션)", description = "전체 공개 게시글을 페이지 단위로 조회합니다.")
-    @GetMapping
-    public ApiResponse<PostPageResponse> getPostList(
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "한 페이지당 크기 (최대 100)", example = "10")
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        PostPageResponse pageResponse = postService.getPostListWithPagination(page, size);
-        return ApiResponse.success(pageResponse);
-    }
+//    @Operation(summary = "게시글 목록 조회 (페이지네이션)", description = "전체 공개 게시글을 페이지 단위로 조회합니다.")
+//    @GetMapping
+//    public ApiResponse<PostPageResponse> getPostList(
+//            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
+//            @RequestParam(defaultValue = "0") int page,
+//
+//            @Parameter(description = "한 페이지당 크기 (최대 100)", example = "10")
+//            @RequestParam(defaultValue = "10") int size
+//    ) {
+//        PostPageResponse pageResponse = postService.getPostListWithPagination(page, size);
+//        return ApiResponse.success(pageResponse);
+//    }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 조회합니다. 자신이 아닌 글이면 조회수를 증가시킵니다.")
     @GetMapping("/{id}")

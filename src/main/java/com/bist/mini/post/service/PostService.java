@@ -7,7 +7,6 @@ import com.bist.mini.post.dao.TagDAO;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
-import com.bist.mini.post.dto.PostPageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,16 +37,16 @@ public class PostService {
        return postDAO.findAll();
    }
 
-   public PostPageResponse getPostListWithPagination(int page, int size) {
-       if (page < 0) page = 0;
-       if (size <= 0 || size > 100) size = 10;
-
-       int offset = page * size;
-       List<Post> posts = postDAO.findAllWithPage(offset, size);
-       long totalElements = postDAO.countAll();
-
-       return PostPageResponse.of(posts, page, size, totalElements);
-   }
+//   public PostPageResponse getPostListWithPagination(int page, int size) {
+//       if (page < 0) page = 0;
+//       if (size <= 0 || size > 100) size = 10;
+//
+//       int offset = page * size;
+//       List<Post> posts = postDAO.findAllWithPage(offset, size);
+//       long totalElements = postDAO.countAll();
+//
+//       return PostPageResponse.of(posts, page, size, totalElements);
+//   }
 
    public List<Post> getPostListByMember(Long memberId) {
        return postDAO.findByMemberId(memberId);

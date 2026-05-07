@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.mypage.dao.MyPageDao">
+
+    <!-- 프로필 조회 -->
+    <select id="selectProfileByMemberId" parameterType="long"
+            resultType="com.bist.mini.mypage.entity.MemberProfile">
+        SELECT
+            member_id,
+            login_id,
+            email,
+            nickname,
+            bio,
+            profile_image
+        FROM members
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </select>
+
+    <!-- 암호화된 비밀번호 조회 (현재 비밀번호 검증용) -->
+    <select id="selectPasswordByMemberId" parameterType="long" resultType="string">
+        SELECT password
+        FROM members
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </select>
+
+    <!-- 닉네임 수정 -->
+    <update id="updateNickname">
+        UPDATE members
+        SET nickname   = #{nickname},
+            updated_at = SYSDATE
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </update>
+
+    <!-- 비밀번호 수정 -->
+    <update id="updatePassword">
+        UPDATE members
+        SET password   = #{encodedPassword},
+            updated_at = SYSDATE
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </update>
+
+    <!-- 자기소개 수정 -->
+    <update id="updateBio">
+        UPDATE members
+        SET bio        = #{bio},
+            updated_at = SYSDATE
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </update>
+
+    <!-- 프로필 이미지 경로 수정 -->
+    <update id="updateProfileImage">
+        UPDATE members
+        SET profile_image = #{profileImage},
+            updated_at    = SYSDATE
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </update>
+
+</mapper>

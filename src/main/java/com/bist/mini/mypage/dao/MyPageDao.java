@@ -1,0 +1,30 @@
+package com.bist.mini.mypage.dao;
+
+import com.bist.mini.mypage.entity.MemberProfile;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+/**
+ * 마이페이지 데이터 접근 객체 (MyBatis Mapper)
+ */
+@Mapper
+public interface MyPageDao {
+
+    /** 회원 프로필 조회 */
+    MemberProfile selectProfileByMemberId(@Param("memberId") Long memberId);
+
+    /** 비밀번호(암호화된) 조회 - 현재 비밀번호 검증용 */
+    String selectPasswordByMemberId(@Param("memberId") Long memberId);
+
+    /** 닉네임 수정 */
+    int updateNickname(@Param("memberId") Long memberId, @Param("nickname") String nickname);
+
+    /** 비밀번호 수정 */
+    int updatePassword(@Param("memberId") Long memberId, @Param("encodedPassword") String encodedPassword);
+
+    /** 자기소개 수정 */
+    int updateBio(@Param("memberId") Long memberId, @Param("bio") String bio);
+
+    /** 프로필 이미지 경로 수정 */
+    int updateProfileImage(@Param("memberId") Long memberId, @Param("profileImage") String profileImage);
+}

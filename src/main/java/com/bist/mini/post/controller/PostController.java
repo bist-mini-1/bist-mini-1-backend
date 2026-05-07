@@ -2,7 +2,6 @@ package com.bist.mini.post.controller;
 
 import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.annotation.LoginMember;
-import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.entity.Post;
@@ -16,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 /**
  * 게시글 API 컨트롤러
@@ -40,13 +40,6 @@ public class PostController {
         return ApiResponse.success(postService.convertToResponse(created, memberId));
     }
 
-    @Operation(summary = "게시글 목록 조회", description = "전체 공개 게시글 목록을 페이징 처리하여 조회합니다.")
-    @GetMapping
-    public PostPageResponse getPostList(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return postService.getPostList(page, size);
-    }
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 상세 조회합니다.")
     @GetMapping("/{postId}")

@@ -54,4 +54,13 @@ public class AttachmentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + attachment.getOriginal_name() + "\"")
                 .body(attachment.getFile_data());
     }
+
+    @GetMapping("/{attachmentId}/image")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long attachmentId) {
+        Attachment attachment = attachmentService.getAttachment(attachmentId);
+
+        return ResponseEntity.ok()
+                .header("Content-Type", attachment.getFile_type())
+                .body(attachment.getFile_data());
+    }
 }

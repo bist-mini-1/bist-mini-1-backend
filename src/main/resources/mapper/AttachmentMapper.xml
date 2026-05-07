@@ -54,4 +54,22 @@
           AND is_deleted = 'N'
     </update>
 
+    <select id="selectAttachmentById" resultType="com.bist.mini.attachment.entity.Attachment">
+        SELECT
+        attachment_id,
+        post_id,
+        original_name,
+        file_size,
+        file_type,
+        extension,
+        upload_type,
+        file_data,
+        download_count,
+        is_deleted,
+        created_at,
+        deleted_at
+        FROM attachments
+        WHERE attachment_id = #{attachmentId}
+        AND is_deleted = 'N'
+    </select>
 </mapper>

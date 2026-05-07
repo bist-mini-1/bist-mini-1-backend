@@ -2,12 +2,12 @@ package com.bist.mini.post.service;
 
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
-import com.bist.mini.post.dao.PostDAO;
-import com.bist.mini.post.dao.TagDAO;
+import com.bist.mini.post.dao.PostDao;
+import com.bist.mini.post.dao.TagDao;
+import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
-import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.attachment.service.AttachmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,25 +23,25 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PostService {
 
-   private final PostDAO postDAO;
-   private final TagDAO tagDAO;
+   private final PostDao postDao;
+   private final TagDao tagDao;
    private final AttachmentService attachmentService;
 
    @Transactional
    public Post createPost(Post post, PostRequest postRequest) {
-       postDAO.insert(post);
+       postDao.insert(post);
        syncPostTags(post.getPostId(), post.getTags());
        String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), post.getContent());
        if (!updatedContent.equals(post.getContent())) {
            post.setContent(updatedContent);
-           postDAO.updatePost(post);
+           postDao.updatePost(post);
        }
        return loadPost(post.getPostId());
    }
 
-   public List<Post> getPostList() {
-       return postDAO.findAll();
-   }
+//   public List<Post> getPostList() {
+//       return postDao.findAll();
+//   }
 
 //   public PostPageResponse getPostListWithPagination(int page, int size) {
 //       if (page < 0) page = 0;
@@ -55,11 +55,11 @@ public class PostService {
 //   }
 
    public List<Post> getPostListByMember(Long memberId) {
-       return postDAO.findByMemberId(memberId);
+       return postDao.findByMemberId(memberId);
    }
 
    public Post getPostDetail(Long postId) {
-       Post post = postDAO.findById(postId);
+       Post post = postDao.findById(postId);
        if (post == null) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
@@ -67,13 +67,13 @@ public class PostService {
    }
 
    public Post getPostDetailWithViewCount(Long postId, Long memberId) {
-       Post post = postDAO.findById(postId);
+       Post post = postDao.findById(postId);
        if (post == null) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
 
        if (!post.getMemberId().equals(memberId)) {
-           postDAO.updateViewCount(postId);
+           postDao.updateViewCount(postId);
        }
 
        return post;
@@ -81,34 +81,34 @@ public class PostService {
 
    @Transactional
    public Post updatePost(Post post, PostRequest postRequest) {
-       int updated = postDAO.updatePost(post);
+       int updated = postDao.updatePost(post);
        if (updated == 0) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
-       postDAO.softDeletePostTagsByPostId(post.getPostId());
+       postDao.softDeletePostTagsByPostId(post.getPostId());
        syncPostTags(post.getPostId(), post.getTags());
        String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), post.getContent());
        if (!updatedContent.equals(post.getContent())) {
            post.setContent(updatedContent);
-           postDAO.updatePost(post);
+           postDao.updatePost(post);
        }
-       return postDAO.findById(post.getPostId());
+       return postDao.findById(post.getPostId());
    }
 
    @Transactional
    public void deletePost(Long postId, Long memberId) {
-       Post post = postDAO.findById(postId);
+       Post post = postDao.findById(postId);
        if (post == null || !post.getMemberId().equals(memberId)) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
 
-       postDAO.softDeleteCommentsByPostId(postId);
-       postDAO.softDeleteAttachmentsByPostId(postId);
-       postDAO.softDeletePostLikesByPostId(postId);
-       postDAO.softDeleteBookmarksByPostId(postId);
-       postDAO.softDeletePostTagsByPostId(postId);
+       postDao.softDeleteCommentsByPostId(postId);
+       postDao.softDeleteAttachmentsByPostId(postId);
+       postDao.softDeletePostLikesByPostId(postId);
+       postDao.softDeleteBookmarksByPostId(postId);
+       postDao.softDeletePostTagsByPostId(postId);
 
-       int deleted = postDAO.softDeletePost(postId, memberId);
+       int deleted = postDao.softDeletePost(postId, memberId);
        if (deleted == 0) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
@@ -116,15 +116,15 @@ public class PostService {
 
    @Transactional
    public void incrementViewCount(Long postId) {
-       postDAO.updateViewCount(postId);
+       postDao.updateViewCount(postId);
    }
 
    public List<Post> getTempPostList(Long memberId) {
-       return postDAO.findTempByMemberId(memberId);
+       return postDao.findTempByMemberId(memberId);
    }
 
    private Post loadPost(Long postId) {
-       Post post = postDAO.findById(postId);
+       Post post = postDao.findById(postId);
        if (post == null) {
            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
        }
@@ -149,12 +149,12 @@ public class PostService {
 
        for (String tagName : normalizedTags) {
            Long tagId = getOrCreateTagId(tagName);
-           postDAO.insertPostTag(postId, tagId);
+           postDao.insertPostTag(postId, tagId);
        }
    }
 
    private Long getOrCreateTagId(String tagName) {
-       Tag existing = tagDAO.findByName(tagName);
+       Tag existing = tagDao.findByName(tagName);
        if (existing != null) {
            return existing.getTagId();
        }
@@ -163,7 +163,18 @@ public class PostService {
              .name(tagName)
              .createdAt(LocalDateTime.now())
              .build();
-       tagDAO.insert(created);
+       tagDao.insert(created);
        return created.getTagId();
    }
+
+    public List<PostListResponse> getPostList() {
+        List<PostListResponse> posts = postDao.selectPostList();
+
+        for (PostListResponse post : posts) {
+            List<String> tags = postDao.selectTagNamesByPostId(post.getPostId());
+            post.setTags(tags);
+        }
+
+        return posts;
+    }
 }

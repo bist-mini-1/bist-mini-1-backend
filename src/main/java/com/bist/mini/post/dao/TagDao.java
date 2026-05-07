@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper
-public interface TagDAO {
+public interface TagDao {
 
     Tag findByName(@Param("name") String name);
 

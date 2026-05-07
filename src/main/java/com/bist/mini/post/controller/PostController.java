@@ -2,19 +2,16 @@ package com.bist.mini.post.controller;
 
 import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.jwt.JwtProvider;
+import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
 import com.bist.mini.post.dto.PostRequest;
-import com.bist.mini.post.dto.PostPageResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.MediaType;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -117,5 +114,10 @@ public class PostController {
         Long memberId = jwtProvider.getMemberIdFromToken(authorization);
         List<Post> tempPosts = postService.getTempPostList(memberId);
         return ApiResponse.success(tempPosts);
+    }
+
+    @GetMapping
+    public List<PostListResponse> getPostList() {
+        return postService.getPostList();
     }
 }

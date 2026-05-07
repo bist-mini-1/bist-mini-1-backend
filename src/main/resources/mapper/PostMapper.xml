@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bist.mini.post.dao.PostDAO">
+<mapper namespace="com.bist.mini.post.dao.PostDao">
 
     <resultMap id="postResultMap" type="com.bist.mini.post.entity.Post">
         <id property="postId" column="post_id" />
@@ -161,11 +161,41 @@
           AND is_temp = 'N'
     </select>
 
+    <select id="selectPostList" resultType="com.bist.mini.post.dto.PostListResponse">
+        SELECT
+        p.post_id,
+        p.member_id,
+        m.nickname,
+        p.title,
+        DBMS_LOB.SUBSTR(p.content, 100, 1) AS content_preview,
+        p.view_count,
+        p.like_count,
+        p.comment_count,
+        p.created_at,
+        (
+        SELECT '/api/attachments/' || a.attachment_id || '/image'
+        FROM attachments a
+        WHERE a.post_id = p.post_id
+        AND a.upload_type = 'THUMBNAIL'
+        AND a.is_deleted = 'N'
+        AND ROWNUM = 1
+        ) AS thumbnail_url
+        FROM posts p
+        JOIN members m
+        ON p.member_id = m.member_id
+        WHERE p.is_deleted = 'N'
+        AND p.is_temp = 'N'
+        AND p.is_public = 'Y'
+        ORDER BY p.created_at DESC
+    </select>
+
     <select id="selectTagNamesByPostId" parameterType="long" resultType="string">
-        SELECT t.name
+        SELECT
+        t.name
         FROM post_tags pt
-                 JOIN tags t ON t.tag_id = pt.tag_id
-        WHERE pt.post_id = #{value}
+        JOIN tags t
+        ON pt.tag_id = t.tag_id
+        WHERE pt.post_id = #{postId}
         ORDER BY t.name
     </select>
 

@@ -3,9 +3,8 @@ package com.bist.mini.post.service;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.post.dao.PostDao;
+import com.bist.mini.post.dao.PostQueryDao;
 import com.bist.mini.post.dao.TagDao;
-import com.bist.mini.post.dto.PostPageResponse;
-import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.dto.PostTagDto;
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostDao postDao;
+    private final PostQueryDao postQueryDao;
     private final TagDao tagDao;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
@@ -47,41 +47,20 @@ public class PostService {
             post.setContent(updatedContent);
             postDao.updatePost(post);
         }
-        return postDao.findById(post.getPostId());
+        return postQueryDao.findById(post.getPostId());
     }
 
-    public PostPageResponse getPostList(int page, int size) {
-        int offset = (page - 1) * size;
-
-        List<PostListResponse> posts = postDao.selectPostList(offset, size);
-
-        for (PostListResponse post : posts) {
-            List<String> tags = postDao.selectTagNamesByPostId(post.getPostId());
-            post.setTags(tags);
-        }
-
-        long totalCount = postDao.countPostList();
-        int totalPages = (int) Math.ceil((double) totalCount / size);
-
-        return PostPageResponse.builder()
-                .posts(posts)
-                .page(page)
-                .size(size)
-                .totalCount(totalCount)
-                .totalPages(totalPages)
-                .build();
-    }
 
     public List<Post> getPostList() {
-        return postDao.findAll();
+        return postQueryDao.findAll();
     }
 
     public List<Post> getPostListByMember(Long memberId) {
-        return postDao.findByMemberId(memberId);
+        return postQueryDao.findByMemberId(memberId);
     }
 
     public Post getPostById(Long postId) {
-        Post post = postDao.findById(postId);
+        Post post = postQueryDao.findById(postId);
         if (post == null) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
@@ -90,7 +69,7 @@ public class PostService {
 
     @Transactional
     public Post getPostDetailWithViewCount(Long postId, Long memberId) {
-        Post post = postDao.findById(postId);
+        Post post = postQueryDao.findById(postId);
         if (post == null) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
@@ -99,14 +78,14 @@ public class PostService {
             postDao.updateViewCount(postId);
         }
 
-        return postDao.findById(postId);
+        return postQueryDao.findById(postId);
     }
 
     @Transactional
     public Post updatePost(Post post, PostRequest postRequest) {
         validateMember(post.getMemberId());
 
-        Post existingPost = postDao.findById(post.getPostId());
+        Post existingPost = postQueryDao.findById(post.getPostId());
         if (existingPost == null) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
@@ -129,14 +108,14 @@ public class PostService {
             post.setContent(updatedContent);
             postDao.updatePost(post);
         }
-        return postDao.findById(post.getPostId());
+        return postQueryDao.findById(post.getPostId());
     }
 
     @Transactional
     public void deletePost(Long postId, Long memberId) {
         validateMember(memberId);
 
-        Post post = postDao.findById(postId);
+        Post post = postQueryDao.findById(postId);
         if (post == null) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
@@ -165,7 +144,7 @@ public class PostService {
 
     public List<Post> getTempPostList(Long memberId) {
         validateMember(memberId);
-        return postDao.findTempByMemberId(memberId);
+        return postQueryDao.findTempByMemberId(memberId);
     }
 
     public PostResponse convertToResponse(Post post, Long memberId) {

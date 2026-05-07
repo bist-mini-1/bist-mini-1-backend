@@ -1,54 +1,32 @@
 package com.bist.mini.post.dao;
 
-import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 /**
- * Post 데이터 접근 객체 (MyBatis Mapper)
+ * 게시글 상태 변경 전용 데이터 접근 객체 (MyBatis Mapper)
  */
 @Mapper
 public interface PostDao {
 
-   List<Post> findAll();
+    void insert(Post post);
 
-   List<Post> findByMemberId(Long memberId);
+    int updateViewCount(Long postId);
 
-   List<Post> findTempByMemberId(Long memberId);
+    int updatePost(Post post);
 
-   Post findById(Long id);
+    int softDeletePost(@Param("postId") Long postId, @Param("memberId") Long memberId);
 
-   void insert(Post post);
+    int softDeleteCommentsByPostId(Long postId);
 
-   int updateViewCount(Long postId);
+    int softDeletePostTagsByPostId(Long postId);
 
-   int updatePost(Post post);
+    int insertPostTag(@Param("postId") Long postId, @Param("tagId") Long tagId);
 
-   int softDeletePost(@Param("postId") Long postId, @Param("memberId") Long memberId);
+    int softDeletePostLikesByPostId(Long postId);
 
-   int softDeleteCommentsByPostId(Long postId);
+    int softDeleteBookmarksByPostId(Long postId);
 
-   int softDeletePostTagsByPostId(Long postId);
-
-   int insertPostTag(@Param("postId") Long postId, @Param("tagId") Long tagId);
-
-   int softDeletePostLikesByPostId(Long postId);
-
-   int softDeleteBookmarksByPostId(Long postId);
-
-   int softDeleteAttachmentsByPostId(Long postId);
-
-   long countAll();
-
-   List<String> selectTagNamesByPostId(@Param("postId") Long postId);
-
-   List<PostListResponse> selectPostList(
-           @Param("offset") int offset,
-           @Param("size") int size
-   );
-
-   long countPostList();
+    int softDeleteAttachmentsByPostId(Long postId);
 }

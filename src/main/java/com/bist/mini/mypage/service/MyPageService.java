@@ -11,7 +11,7 @@ import com.bist.mini.mypage.dto.PasswordUpdateRequest;
 import com.bist.mini.mypage.dto.MyPostResponse;
 import com.bist.mini.mypage.dto.ProfileImageUpdateResponse;
 import com.bist.mini.mypage.entity.MemberProfile;
-import com.bist.mini.post.dao.PostDao;
+import com.bist.mini.post.dao.PostQueryDao;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +32,7 @@ public class MyPageService {
 
     private final MyPageDao myPageDao;
     private final MemberDao memberDao;
-    private final PostDao postDao;
+    private final PostQueryDao postQueryDao;
     private final PasswordEncoder passwordEncoder;
 
     private final Path profileUploadRoot = Paths.get("uploads", "profile").toAbsolutePath().normalize();
@@ -160,7 +160,7 @@ public class MyPageService {
     // ── 내 게시글 목록 ─────────────────────────────────────────────────────────
 
     public List<MyPostResponse> getMyPosts(Long memberId) {
-        return postDao.findByMemberId(memberId).stream()
+        return postQueryDao.findByMemberId(memberId).stream()
                 .map(MyPostResponse::from)
                 .toList();
     }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.bist.mini.post.dao.AttachmentDAO">
+<mapper namespace="com.bist.mini.attachment.dao.AttachmentDao">
 
-    <insert id="insert" parameterType="com.bist.mini.post.entity.Attachments" useGeneratedKeys="true" keyProperty="attachment_id" keyColumn="attachment_id">
+    <insert id="insert" parameterType="com.bist.mini.attachment.entity.Attachment" useGeneratedKeys="true" keyProperty="attachment_id" keyColumn="attachment_id">
         INSERT INTO attachments (
             post_id, original_name, file_size, file_type, upload_type,
             file_data, download_count, is_deleted, created_at
@@ -12,7 +12,7 @@
         )
     </insert>
 
-    <select id="findByIds" resultType="com.bist.mini.post.entity.Attachments">
+    <select id="findByIds" resultType="com.bist.mini.attachment.entity.Attachment">
         SELECT
             attachment_id, post_id, original_name, file_size, file_type, upload_type,
             file_data, download_count, is_deleted, created_at, deleted_at
@@ -24,7 +24,7 @@
           AND is_deleted = 'N'
     </select>
 
-    <select id="findActiveByPostId" resultType="com.bist.mini.post.entity.Attachments">
+    <select id="findActiveByPostId" resultType="com.bist.mini.attachment.entity.Attachment">
         SELECT
             attachment_id, post_id, original_name, file_size, file_type, upload_type,
             file_data, download_count, is_deleted, created_at, deleted_at

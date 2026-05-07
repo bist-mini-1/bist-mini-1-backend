@@ -1,4 +1,4 @@
-package com.bist.mini.post.dto;
+package com.bist.mini.attachment.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

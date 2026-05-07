@@ -1,11 +1,10 @@
-package com.bist.mini.post.service;
+package com.bist.mini.attachment.service;
 
+import com.bist.mini.attachment.dao.AttachmentDao;
+import com.bist.mini.attachment.dto.AttachmentUploadResponse;
+import com.bist.mini.attachment.entity.Attachment;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
-import com.bist.mini.post.dao.AttachmentDAO;
-import com.bist.mini.post.dto.AttachmentUploadResponse;
-import com.bist.mini.post.dto.PostRequest;
-import com.bist.mini.post.entity.Attachments;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,14 +25,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PostAttachmentService {
+public class AttachmentService {
 
     private static final String TYPE_ATTACHMENT = "ATTACHMENT";
     private static final String TYPE_INLINE_IMAGE = "INLINE_IMAGE";
     private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
     private static final long MAX_INLINE_IMAGE_SIZE = 10L * 1024 * 1024;
 
-    private final AttachmentDAO attachmentDAO;
+    private final AttachmentDao attachmentDao;
 
     private final Path uploadRoot = Paths.get("uploads", "post").toAbsolutePath().normalize();
 
@@ -62,7 +61,7 @@ public class PostAttachmentService {
             }
 
             String fileUrl = "/uploads/post/" + storedName;
-            Attachments attachment = Attachments.builder()
+            Attachment attachment = Attachment.builder()
                     .post_id(null)
                     .original_name(file.getOriginalFilename())
                     .file_size(file.getSize())
@@ -74,7 +73,7 @@ public class PostAttachmentService {
                     .created_at(LocalDateTime.now())
                     .build();
 
-            attachmentDAO.insert(attachment);
+            attachmentDao.insert(attachment);
             responses.add(AttachmentUploadResponse.builder()
                     .attachmentId(attachment.getAttachment_id())
                     .originalName(attachment.getOriginal_name())
@@ -87,28 +86,28 @@ public class PostAttachmentService {
     }
 
     @Transactional
-    public void syncPostAttachments(Long postId, PostRequest postRequest) {
-        List<Long> attachmentIds = normalizeIds(postRequest.getAttachmentIds());
-        List<Long> inlineImageIds = normalizeIds(postRequest.getInlineImageIds());
+    public void syncPostAttachments(Long postId, List<Long> attachmentIdsRaw, List<Long> inlineImageIdsRaw, String content) {
+        List<Long> attachmentIds = normalizeIds(attachmentIdsRaw);
+        List<Long> inlineImageIds = normalizeIds(inlineImageIdsRaw);
 
-        validateInlineImagesInContent(postRequest.getContent(), inlineImageIds);
+        validateInlineImagesInContent(content, inlineImageIds);
 
         Set<Long> desiredIds = new LinkedHashSet<>();
         desiredIds.addAll(attachmentIds);
         desiredIds.addAll(inlineImageIds);
 
         if (!desiredIds.isEmpty()) {
-            attachmentDAO.bindToPost(postId, new ArrayList<>(desiredIds));
+            attachmentDao.bindToPost(postId, new ArrayList<>(desiredIds));
         }
 
-        List<Attachments> current = attachmentDAO.findActiveByPostId(postId);
+        List<Attachment> current = attachmentDao.findActiveByPostId(postId);
         List<Long> removeIds = current.stream()
-                .map(Attachments::getAttachment_id)
+                .map(Attachment::getAttachment_id)
                 .filter(id -> !desiredIds.contains(id))
                 .toList();
 
         if (!removeIds.isEmpty()) {
-            attachmentDAO.softDeleteByIds(removeIds);
+            attachmentDao.softDeleteByIds(removeIds);
         }
     }
 
@@ -121,12 +120,12 @@ public class PostAttachmentService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        List<Attachments> attachments = attachmentDAO.findByIds(inlineImageIds);
+        List<Attachment> attachments = attachmentDao.findByIds(inlineImageIds);
         if (attachments.size() != inlineImageIds.size()) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        for (Attachments attachment : attachments) {
+        for (Attachment attachment : attachments) {
             if (!TYPE_INLINE_IMAGE.equalsIgnoreCase(attachment.getUpload_type())) {
                 throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }

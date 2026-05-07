@@ -8,6 +8,7 @@ import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
 import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.attachment.service.AttachmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,13 +25,13 @@ public class PostService {
 
    private final PostDAO postDAO;
    private final TagDAO tagDAO;
-   private final PostAttachmentService postAttachmentService;
+   private final AttachmentService attachmentService;
 
    @Transactional
    public Post createPost(Post post, PostRequest postRequest) {
        postDAO.insert(post);
        syncPostTags(post.getPostId(), post.getTags());
-       postAttachmentService.syncPostAttachments(post.getPostId(), postRequest);
+       attachmentService.syncPostAttachments(post.getPostId(), postRequest.getAttachmentIds(), postRequest.getInlineImageIds(), postRequest.getContent());
        return loadPost(post.getPostId());
    }
 
@@ -82,7 +83,7 @@ public class PostService {
        }
        postDAO.softDeletePostTagsByPostId(post.getPostId());
        syncPostTags(post.getPostId(), post.getTags());
-       postAttachmentService.syncPostAttachments(post.getPostId(), postRequest);
+       attachmentService.syncPostAttachments(post.getPostId(), postRequest.getAttachmentIds(), postRequest.getInlineImageIds(), postRequest.getContent());
        return postDAO.findById(post.getPostId());
    }
 

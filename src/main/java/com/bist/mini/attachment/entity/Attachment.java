@@ -1,4 +1,4 @@
-package com.bist.mini.post.entity;
+package com.bist.mini.attachment.entity;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +13,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attachments {
+public class Attachment {
 
     private Long attachment_id;
     private Long post_id;

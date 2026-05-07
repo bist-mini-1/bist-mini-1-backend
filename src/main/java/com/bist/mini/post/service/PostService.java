@@ -38,7 +38,7 @@ public class PostService {
     @Transactional
     public Post createPost(Post post, PostRequest postRequest) {
         validateMember(post.getMemberId());
-        
+
         postDao.insert(post);
         syncPostTags(post.getPostId(), postRequest.getTags());
         String updatedContent = attachmentService.syncPostAttachments(post.getPostId(),
@@ -52,7 +52,14 @@ public class PostService {
 
     public PostPageResponse getPostList(int page, int size) {
         int offset = (page - 1) * size;
+
         List<PostListResponse> posts = postDao.selectPostList(offset, size);
+
+        for (PostListResponse post : posts) {
+            List<String> tags = postDao.selectTagNamesByPostId(post.getPostId());
+            post.setTags(tags);
+        }
+
         long totalCount = postDao.countPostList();
         int totalPages = (int) Math.ceil((double) totalCount / size);
 
@@ -98,12 +105,12 @@ public class PostService {
     @Transactional
     public Post updatePost(Post post, PostRequest postRequest) {
         validateMember(post.getMemberId());
-        
+
         Post existingPost = postDao.findById(post.getPostId());
         if (existingPost == null) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
-        
+
         // 권한 체크
         if (!existingPost.getMemberId().equals(post.getMemberId())) {
             throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
@@ -113,7 +120,7 @@ public class PostService {
         if (updated == 0) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
-        
+
         postDao.softDeletePostTagsByPostId(post.getPostId());
         syncPostTags(post.getPostId(), postRequest.getTags());
         String updatedContent = attachmentService.syncPostAttachments(post.getPostId(),
@@ -128,12 +135,12 @@ public class PostService {
     @Transactional
     public void deletePost(Long postId, Long memberId) {
         validateMember(memberId);
-        
+
         Post post = postDao.findById(postId);
         if (post == null) {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
-        
+
         // 권한 체크
         if (!post.getMemberId().equals(memberId)) {
             throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
@@ -168,7 +175,7 @@ public class PostService {
         List<Tag> tags = tagDao.findTagsByPostId(post.getPostId());
         boolean isLiked = likeService.isLiked(post.getPostId(), memberId);
         boolean isBookmarked = bookmarkService.isBookmarked(post.getPostId(), memberId);
-        
+
         return PostResponse.of(post, tags, isLiked, isBookmarked);
     }
 
@@ -230,7 +237,7 @@ public class PostService {
         tagDao.insert(created);
         return created.getTagId();
     }
-    
+
     private void validateMember(Long memberId) {
         if (memberId == null) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);

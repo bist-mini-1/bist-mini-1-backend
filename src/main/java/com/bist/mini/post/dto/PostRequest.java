@@ -40,11 +40,11 @@ public class PostRequest {
    @Schema(description = "태그 목록", example = "[\"Spring\", \"JPA\"]")
    private List<String> tags;
 
-   @Schema(description = "게시글에 연결할 일반 첨부파일 ID 목록", example = "[101, 102]")
-   private List<Long> attachmentIds;
+   @Schema(description = "게시글에 연결할 임시 첨부파일 ID 목록", example = "[\"uuid-1\", \"uuid-2\"]")
+   private List<String> tempAttachmentIds;
 
-   @Schema(description = "본문에 삽입된 인라인 이미지 ID 목록", example = "[201, 202]")
-   private List<Long> inlineImageIds;
+   @Schema(description = "본문에 삽입된 임시 인라인 이미지 ID 목록", example = "[\"uuid-3\", \"uuid-4\"]")
+   private List<String> tempInlineImageIds;
 
 
    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/thumbnail.jpg")

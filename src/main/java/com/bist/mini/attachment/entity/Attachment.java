@@ -1,4 +1,4 @@
-package com.bist.mini.post.entity;
+package com.bist.mini.attachment.entity;
 
 import java.time.LocalDateTime;
 
@@ -13,15 +13,16 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attachments {
+public class Attachment {
 
     private Long attachment_id;
     private Long post_id;
     private String original_name;
     private Long file_size;
     private String file_type;
+    private String extension;
     private String upload_type;
-    private String file_data;
+    private byte[] file_data;
     private Long download_count;
     private String is_deleted;
     private LocalDateTime created_at;

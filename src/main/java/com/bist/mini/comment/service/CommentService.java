@@ -1,10 +1,8 @@
 package com.bist.mini.comment.service;
 
 import com.bist.mini.comment.dao.CommentDao;
-import com.bist.mini.comment.dto.CommentRequest;
 import com.bist.mini.comment.dto.CommentUpdateRequest;
 import com.bist.mini.comment.entity.Comment;
-import com.bist.mini.common.enums.DeleteStatus;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

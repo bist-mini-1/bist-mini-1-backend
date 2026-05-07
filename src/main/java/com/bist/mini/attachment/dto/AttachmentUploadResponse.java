@@ -9,8 +9,8 @@ import lombok.Getter;
 @Schema(description = "첨부 업로드 응답")
 public class AttachmentUploadResponse {
 
-    @Schema(description = "첨부 ID", example = "101")
-    private Long attachmentId;
+    @Schema(description = "임시 파일 ID", example = "a1b2c3d4-e5f6-7890-1234-56789abcdef0")
+    private String tempId;
 
     @Schema(description = "원본 파일명", example = "sample.png")
     private String originalName;

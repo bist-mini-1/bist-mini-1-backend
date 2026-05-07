@@ -4,17 +4,17 @@
 
     <insert id="insert" parameterType="com.bist.mini.attachment.entity.Attachment" useGeneratedKeys="true" keyProperty="attachment_id" keyColumn="attachment_id">
         INSERT INTO attachments (
-            post_id, original_name, file_size, file_type, upload_type,
+            post_id, original_name, file_size, file_type, extension, upload_type,
             file_data, download_count, is_deleted, created_at
         ) VALUES (
-            #{post_id}, #{original_name}, #{file_size}, #{file_type}, #{upload_type},
-            #{file_data}, #{download_count}, #{is_deleted}, SYSDATE
+            #{post_id}, #{original_name}, #{file_size}, #{file_type}, #{extension}, #{upload_type},
+            #{file_data, jdbcType=BLOB}, #{download_count}, #{is_deleted}, SYSDATE
         )
     </insert>
 
     <select id="findByIds" resultType="com.bist.mini.attachment.entity.Attachment">
         SELECT
-            attachment_id, post_id, original_name, file_size, file_type, upload_type,
+            attachment_id, post_id, original_name, file_size, file_type, extension, upload_type,
             file_data, download_count, is_deleted, created_at, deleted_at
         FROM attachments
         WHERE attachment_id IN
@@ -26,7 +26,7 @@
 
     <select id="findActiveByPostId" resultType="com.bist.mini.attachment.entity.Attachment">
         SELECT
-            attachment_id, post_id, original_name, file_size, file_type, upload_type,
+            attachment_id, post_id, original_name, file_size, file_type, extension, upload_type,
             file_data, download_count, is_deleted, created_at, deleted_at
         FROM attachments
         WHERE post_id = #{postId}

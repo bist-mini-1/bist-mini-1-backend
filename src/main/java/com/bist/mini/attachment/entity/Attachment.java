@@ -20,8 +20,9 @@ public class Attachment {
     private String original_name;
     private Long file_size;
     private String file_type;
+    private String extension;
     private String upload_type;
-    private String file_data;
+    private byte[] file_data;
     private Long download_count;
     private String is_deleted;
     private LocalDateTime created_at;

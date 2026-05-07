@@ -31,7 +31,11 @@ public class PostService {
    public Post createPost(Post post, PostRequest postRequest) {
        postDAO.insert(post);
        syncPostTags(post.getPostId(), post.getTags());
-       attachmentService.syncPostAttachments(post.getPostId(), postRequest.getAttachmentIds(), postRequest.getInlineImageIds(), postRequest.getContent());
+       String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), post.getContent());
+       if (!updatedContent.equals(post.getContent())) {
+           post.setContent(updatedContent);
+           postDAO.updatePost(post);
+       }
        return loadPost(post.getPostId());
    }
 
@@ -83,7 +87,11 @@ public class PostService {
        }
        postDAO.softDeletePostTagsByPostId(post.getPostId());
        syncPostTags(post.getPostId(), post.getTags());
-       attachmentService.syncPostAttachments(post.getPostId(), postRequest.getAttachmentIds(), postRequest.getInlineImageIds(), postRequest.getContent());
+       String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), post.getContent());
+       if (!updatedContent.equals(post.getContent())) {
+           post.setContent(updatedContent);
+           postDAO.updatePost(post);
+       }
        return postDAO.findById(post.getPostId());
    }
 

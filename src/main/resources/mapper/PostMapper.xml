@@ -139,20 +139,6 @@
           AND is_deleted = 'N'
     </update>
 
-
-<!--    &lt;!&ndash; 페이지네이션 쿼리 &ndash;&gt;-->
-<!--    <select id="findAllWithPage" resultMap="postResultMap">-->
-<!--        SELECT-->
-<!--            post_id, member_id, title, content, view_count, like_count, comment_count,-->
-<!--            is_public, is_temp, is_deleted, created_at, updated_at, deleted_at-->
-<!--        FROM posts-->
-<!--        WHERE is_deleted = 'N'-->
-<!--          AND is_temp = 'N'-->
-<!--        ORDER BY created_at DESC-->
-<!--        OFFSET #{offset} ROWS-->
-<!--        FETCH NEXT #{limit} ROWS ONLY-->
-<!--    </select>-->
-
     <select id="countAll" resultType="long">
         SELECT COUNT(*)
         FROM posts

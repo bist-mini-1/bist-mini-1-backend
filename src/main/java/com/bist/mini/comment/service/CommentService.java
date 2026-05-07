@@ -45,10 +45,10 @@ public class CommentService {
      * 댓글 등록
      */
     @Transactional
-    public Comment createComment(CommentRequest request, Long memberId) {
-        if (request.getParentId() != null) {
-            Comment parent = getCommentDetail(request.getParentId());
-
+    public Comment createComment(Comment comment) {
+        if (comment.getParentId() != null) {
+            Comment parent = getCommentDetail(comment.getParentId());
+            
             // 삭제된 댓글에는 답글을 달 수 없음
             if (parent.isDeleted()) {
                 throw new CustomException(ErrorCode.COMMENT_ALREADY_DELETED);
@@ -59,14 +59,6 @@ public class CommentService {
                 throw new CustomException(ErrorCode.COMMENT_REPLY_DEPTH_EXCEEDED);
             }
         }
-
-        Comment comment = Comment.builder()
-                .postId(request.getPostId())
-                .memberId(memberId)
-                .parentId(request.getParentId())
-                .content(request.getContent())
-                .isDeleted(DeleteStatus.N)
-                .build();
 
         commentDao.insert(comment);
         return getCommentDetail(comment.getCommentId());

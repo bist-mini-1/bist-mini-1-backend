@@ -2,10 +2,8 @@ package com.bist.mini.post.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.bist.mini.post.entity.Post;
-import com.bist.mini.post.entity.Tag;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -47,7 +45,6 @@ public class PostRequest {
 
    @Schema(description = "본문에 삽입된 임시 인라인 이미지 ID 목록", example = "[\"uuid-3\", \"uuid-4\"]")
    private List<String> tempInlineImageIds;
-
 
    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/thumbnail.jpg")
    private String thumbnail;

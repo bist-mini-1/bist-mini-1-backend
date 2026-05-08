@@ -7,7 +7,9 @@ import com.bist.mini.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,14 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final JwtProvider jwtProvider;
+
+    @Operation(summary = "알림 구독 (SSE)", description = "실시간 알림을 받기 위해 SSE 연결을 맺습니다.")
+    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(
+            @RequestHeader("Authorization") String token) {
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        return notificationService.subscribe(memberId);
+    }
 
     @Operation(summary = "내 알림 목록 조회", description = "로그인한 사용자의 알림 목록을 최신순으로 조회합니다.")
     @GetMapping

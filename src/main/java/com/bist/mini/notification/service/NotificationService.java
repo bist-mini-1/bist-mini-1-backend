@@ -9,7 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +22,12 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationDao notificationDao;
+    
+    // 메시지 만료 시간 (1시간)
+    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    
+    // 사용자별 SSE 연결 관리
+    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     /**
      * 회원의 알림 목록 조회
@@ -66,5 +77,50 @@ public class NotificationService {
                 .build();
 
         notificationDao.insert(notification);
+
+        // 실시간 SSE 알림 전송
+        sendToClient(receiverId, notification, "알림이 도착했습니다.");
+    }
+
+    /**
+     * SSE 연결 생성
+     */
+    public SseEmitter subscribe(Long memberId) {
+        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+        emitters.put(memberId, emitter);
+
+        // 연결 종료/타임아웃 시 맵에서 삭제
+        emitter.onCompletion(() -> emitters.remove(memberId));
+        emitter.onTimeout(() -> emitters.remove(memberId));
+        emitter.onError((e) -> emitters.remove(memberId));
+
+        // 503 에러 방지를 위한 더미 데이터 전송
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("connected!"));
+        } catch (IOException e) {
+            emitters.remove(memberId);
+        }
+
+        return emitter;
+    }
+
+    /**
+     * 클라이언트에게 데이터 전송
+     */
+    private void sendToClient(Long memberId, Object data, String comment) {
+        SseEmitter emitter = emitters.get(memberId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .id(String.valueOf(memberId))
+                        .name("notification")
+                        .data(data)
+                        .comment(comment));
+            } catch (IOException e) {
+                emitters.remove(memberId);
+            }
+        }
     }
 }

@@ -20,7 +20,7 @@
         INSERT INTO notifications (
             receiver_id, sender_id, post_id, comment_id, type, message
         ) VALUES (
-            #{receiverId}, #{senderId}, #{postId}, #{commentId}, #{type}, #{message}
+            #{receiverId}, #{senderId, jdbcType=NUMERIC}, #{postId, jdbcType=NUMERIC}, #{commentId, jdbcType=NUMERIC}, #{type}, #{message}
         )
     </insert>
 

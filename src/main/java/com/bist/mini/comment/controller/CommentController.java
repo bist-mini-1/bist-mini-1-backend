@@ -66,4 +66,13 @@ public class CommentController {
         List<Comment> deletedList = commentService.deleteComment(commentId, memberId);
         return ApiResponse.success(CommentResponse.fromList(deletedList));
     }
+
+    @Operation(summary = "내 댓글 여부 확인", description = "현재 로그인한 사용자가 해당 댓글 작성자인지 확인합니다.")
+    @GetMapping("/{commentId}/mine")
+    public ApiResponse<Boolean> isMyComment(
+            @Parameter(description = "댓글 ID") @PathVariable("commentId") Long commentId,
+            @LoginMember Long memberId) {
+        log.debug("댓글 작성자 확인 요청: commentId={}, memberId={}", commentId, memberId);
+        return ApiResponse.success(commentService.isMyComment(commentId, memberId));
+    }
 }

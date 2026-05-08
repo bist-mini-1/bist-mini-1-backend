@@ -86,22 +86,23 @@
         AND ROWNUM = 1
         ) AS thumbnail_url,
         CASE
-        WHEN EXISTS (
+        WHEN #{memberId, jdbcType=NUMERIC} IS NOT NULL
+        AND EXISTS (
         SELECT 1
         FROM post_likes pl
         WHERE pl.post_id = p.post_id
-        AND pl.member_id = #{memberId}
+        AND pl.member_id = #{memberId, jdbcType=NUMERIC}
         )
         THEN 1
         ELSE 0
         END AS is_liked,
         CASE
-        WHEN #{memberId} IS NOT NULL
+        WHEN #{memberId, jdbcType=NUMERIC} IS NOT NULL
         AND EXISTS (
         SELECT 1
         FROM bookmarks b
         WHERE b.post_id = p.post_id
-        AND b.member_id = #{memberId}
+        AND b.member_id = #{memberId, jdbcType=NUMERIC}
         )
         THEN 1
         ELSE 0
@@ -112,6 +113,21 @@
         WHERE p.is_deleted = 'N'
         AND p.is_temp = 'N'
         AND p.is_public = 'Y'
+        <if test="keyword != null">
+            AND (
+            LOWER(p.title) LIKE '%' || LOWER(#{keyword}) || '%'
+            OR DBMS_LOB.INSTR(LOWER(p.content), LOWER(#{keyword})) > 0
+            OR LOWER(m.nickname) LIKE '%' || LOWER(#{keyword}) || '%'
+            OR EXISTS (
+            SELECT 1
+            FROM post_tags pt
+            JOIN tags t
+            ON pt.tag_id = t.tag_id
+            WHERE pt.post_id = p.post_id
+            AND LOWER(t.name) LIKE '%' || LOWER(#{keyword}) || '%'
+            )
+            )
+        </if>
         ORDER BY p.created_at DESC
         OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
     </select>
@@ -119,9 +135,26 @@
     <select id="countPostList" resultType="long">
         SELECT COUNT(*)
         FROM posts p
+        JOIN members m
+        ON p.member_id = m.member_id
         WHERE p.is_deleted = 'N'
         AND p.is_temp = 'N'
         AND p.is_public = 'Y'
+        <if test="keyword != null">
+            AND (
+            LOWER(p.title) LIKE '%' || LOWER(#{keyword}) || '%'
+            OR DBMS_LOB.INSTR(LOWER(p.content), LOWER(#{keyword})) > 0
+            OR LOWER(m.nickname) LIKE '%' || LOWER(#{keyword}) || '%'
+            OR EXISTS (
+            SELECT 1
+            FROM post_tags pt
+            JOIN tags t
+            ON pt.tag_id = t.tag_id
+            WHERE pt.post_id = p.post_id
+            AND LOWER(t.name) LIKE '%' || LOWER(#{keyword}) || '%'
+            )
+            )
+        </if>
     </select>
 
     <select id="selectTagNamesByPostIds" resultType="com.bist.mini.post.dto.PostTagResponse">

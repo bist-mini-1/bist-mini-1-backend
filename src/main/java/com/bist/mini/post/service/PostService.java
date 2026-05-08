@@ -7,7 +7,7 @@ import com.bist.mini.post.dao.PostQueryDao;
 import com.bist.mini.post.dao.TagDao;
 import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
-import com.bist.mini.post.dto.PostTagDto;
+import com.bist.mini.post.dto.PostTag;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
 import com.bist.mini.attachment.service.AttachmentService;
@@ -164,12 +164,12 @@ public class PostService {
         }
 
         List<Long> postIds = posts.stream().map(Post::getPostId).collect(Collectors.toList());
-        List<PostTagDto> postTags = tagDao.findTagsByPostIds(postIds);
+        List<PostTag> postTags = tagDao.findTagsByPostIds(postIds);
 
         Map<Long, List<Tag>> tagsByPostId = postTags.stream()
                 .collect(Collectors.groupingBy(
-                        PostTagDto::getPostId,
-                        Collectors.mapping(PostTagDto::getTag, Collectors.toList())));
+                        PostTag::getPostId,
+                        Collectors.mapping(PostTag::getTag, Collectors.toList())));
 
         return posts.stream()
                 .map(post -> {

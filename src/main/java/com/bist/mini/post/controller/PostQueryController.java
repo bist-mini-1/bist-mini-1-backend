@@ -1,11 +1,13 @@
 package com.bist.mini.post.controller;
 
+import com.bist.mini.common.annotation.LoginMember;
 import com.bist.mini.post.dto.PostPageResponse;
 import com.bist.mini.post.service.PostQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,7 +29,9 @@ public class PostQueryController {
     @GetMapping
     public PostPageResponse getPostList(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return postQueryService.getPostList(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @LoginMember(required = false) Long memberId
+    ) {
+        return postQueryService.getPostList(page, size, memberId);
     }
 }

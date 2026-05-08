@@ -3,11 +3,14 @@ package com.bist.mini.post.service;
 import com.bist.mini.post.dao.PostQueryDao;
 import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.post.dto.PostTagResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -19,14 +22,27 @@ public class PostQueryService {
     /**
      * 전체 공개 게시글 목록을 페이징 처리하여 조회합니다.
      */
-    public PostPageResponse getPostList(int page, int size) {
+    public PostPageResponse getPostList(int page, int size, Long memberId) {
         int offset = (page - 1) * size;
 
-        List<PostListResponse> posts = postQueryDao.selectPostList(offset, size);
+        List<PostListResponse> posts = postQueryDao.selectPostList(offset, size, memberId);
 
-        for (PostListResponse post : posts) {
-            List<String> tags = postQueryDao.selectTagNamesByPostId(post.getPostId());
-            post.setTags(tags);
+        if (!posts.isEmpty()) {
+            List<Long> postIds = posts.stream()
+                    .map(PostListResponse::getPostId)
+                    .toList();
+
+            List<PostTagResponse> postTags = postQueryDao.selectTagNamesByPostIds(postIds);
+
+            Map<Long, List<String>> tagMap = postTags.stream()
+                    .collect(Collectors.groupingBy(
+                            PostTagResponse::getPostId,
+                            Collectors.mapping(PostTagResponse::getTagName, Collectors.toList())
+                    ));
+
+            for (PostListResponse post : posts) {
+                post.setTags(tagMap.getOrDefault(post.getPostId(), List.of()));
+            }
         }
 
         long totalCount = postQueryDao.countPostList();

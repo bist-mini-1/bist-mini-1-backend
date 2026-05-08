@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PostTagDto {
+public class PostTag {
     private Long postId;
     private Tag tag;
 }

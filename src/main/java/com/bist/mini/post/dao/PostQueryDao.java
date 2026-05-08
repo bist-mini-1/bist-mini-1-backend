@@ -1,6 +1,7 @@
 package com.bist.mini.post.dao;
 
 import com.bist.mini.post.dto.PostListResponse;
+import com.bist.mini.post.dto.PostTagResponse;
 import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -23,11 +24,12 @@ public interface PostQueryDao {
 
     long countAll();
 
-    List<String> selectTagNamesByPostId(@Param("postId") Long postId);
+    List<PostTagResponse> selectTagNamesByPostIds(@Param("postIds") List<Long> postIds);
 
     List<PostListResponse> selectPostList(
             @Param("offset") int offset,
-            @Param("size") int size
+            @Param("size") int size,
+            @Param("memberId") Long memberId
     );
 
     long countPostList();

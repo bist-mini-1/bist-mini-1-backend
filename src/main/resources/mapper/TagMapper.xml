@@ -30,7 +30,7 @@
         ORDER BY t.name
     </select>
 
-    <select id="findTagsByPostIds" resultType="com.bist.mini.post.dto.PostTagDto">
+    <select id="findTagsByPostIds" resultType="com.bist.mini.post.dto.PostTag">
         SELECT pt.post_id as postId, t.tag_id as "tag.tagId", t.name as "tag.name", t.created_at as "tag.createdAt"
         FROM post_tags pt
         JOIN tags t ON pt.tag_id = t.tag_id

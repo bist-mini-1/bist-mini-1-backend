@@ -68,6 +68,15 @@ public class MyPageController {
         return ApiResponse.success(myPageService.getMyPosts(memberId));
     }
 
+    // ── 북마크한 게시글 목록 ────────────────────────────────────────────────────
+
+    @Operation(summary = "북마크한 게시글 목록 조회", description = "로그인된 회원이 북마크한 게시글 목록을 조회합니다.")
+    @GetMapping("/me/bookmarks")
+    public ApiResponse<List<MyPostResponse>> getBookmarkedPosts(HttpServletRequest httpRequest) {
+        Long memberId = extractMemberId(httpRequest);
+        return ApiResponse.success(myPageService.getBookmarkedPosts(memberId));
+    }
+
     // ── 닉네임 수정 ──────────────────────────────────────────────────────────
 
     @Operation(summary = "닉네임 수정", description = "로그인된 회원의 닉네임을 수정합니다.")

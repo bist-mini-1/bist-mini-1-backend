@@ -159,8 +159,18 @@ public class MyPageService {
 
     // ── 내 게시글 목록 ─────────────────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public List<MyPostResponse> getMyPosts(Long memberId) {
         return postQueryDao.findByMemberId(memberId).stream()
+                .map(MyPostResponse::from)
+                .toList();
+    }
+
+    // ── 북마크한 게시글 목록 ────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<MyPostResponse> getBookmarkedPosts(Long memberId) {
+        return myPageDao.selectBookmarkedPosts(memberId).stream()
                 .map(MyPostResponse::from)
                 .toList();
     }

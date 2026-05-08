@@ -12,7 +12,7 @@ public class Member {
     private String email;
     private String nickname;
     private String bio;
-    private String profileImage;
+    private byte[] profileImage;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

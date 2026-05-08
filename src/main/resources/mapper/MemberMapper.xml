@@ -1,18 +1,50 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bist.mini.member.dao.MemberDao">
+    <resultMap id="memberResultMap" type="com.bist.mini.member.entity.Member">
+        <id property="memberId" column="member_id"/>
+        <result property="loginId" column="login_id"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="nickname" column="nickname"/>
+        <result property="bio" column="bio"/>
+        <result property="profileImage" column="profile_image" jdbcType="BLOB"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
 
     <select id="selectByLoginId" parameterType="string" resultType="Member">
         SELECT
-            member_id, login_id, password, email, nickname, bio, profile_image, status, created_at, updated_at, deleted_at
+        member_id,
+        login_id,
+        password,
+        email,
+        nickname,
+        bio,
+        status,
+        created_at,
+        updated_at,
+        deleted_at
         FROM members
         WHERE login_id = #{loginId}
         AND status = 'ACTIVE'
     </select>
 
-    <select id="findById" parameterType="long" resultType="Member">
+    <select id="findById" parameterType="long" resultMap="memberResultMap">
         SELECT
-            member_id, login_id, password, email, nickname, bio, profile_image, status, created_at, updated_at, deleted_at
+        member_id,
+        login_id,
+        password,
+        email,
+        nickname,
+        bio,
+        profile_image,
+        status,
+        created_at,
+        updated_at,
+        deleted_at
         FROM members
         WHERE member_id = #{memberId}
     </select>

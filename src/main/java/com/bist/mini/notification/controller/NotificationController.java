@@ -28,6 +28,7 @@ public class NotificationController {
     public SseEmitter subscribe(
             @RequestHeader("Authorization") String token) {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
+        System.out.println("SSE subscription request for member: " + memberId);
         return notificationService.subscribe(memberId);
     }
 

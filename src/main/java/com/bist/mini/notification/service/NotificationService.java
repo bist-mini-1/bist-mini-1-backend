@@ -88,22 +88,50 @@ public class NotificationService {
     public SseEmitter subscribe(Long memberId) {
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
         emitters.put(memberId, emitter);
+        System.out.println("SSE: Emitter created for member " + memberId + ". Current count: " + emitters.size());
 
         // 연결 종료/타임아웃 시 맵에서 삭제
-        emitter.onCompletion(() -> emitters.remove(memberId));
-        emitter.onTimeout(() -> emitters.remove(memberId));
-        emitter.onError((e) -> emitters.remove(memberId));
+        emitter.onCompletion(() -> {
+            System.out.println("SSE: Emitter completed for member " + memberId);
+            emitters.remove(memberId);
+        });
+        emitter.onTimeout(() -> {
+            System.out.println("SSE: Emitter timeout for member " + memberId);
+            emitters.remove(memberId);
+        });
+        emitter.onError((e) -> {
+            System.out.println("SSE: Emitter error for member " + memberId + ": " + e.getMessage());
+            emitters.remove(memberId);
+        });
 
         // 503 에러 방지를 위한 더미 데이터 전송
         try {
             emitter.send(SseEmitter.event()
                     .name("connect")
                     .data("connected!"));
+            System.out.println("SSE: Initial connect event sent to member " + memberId);
         } catch (IOException e) {
+            System.err.println("SSE: Failed to send initial connect event to member " + memberId);
             emitters.remove(memberId);
         }
 
         return emitter;
+    }
+
+    /**
+     * 클라이언트에게 데이터 전송
+     */
+    public void send(Long memberId, Object data, String eventName) {
+        SseEmitter emitter = emitters.get(memberId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name(eventName)
+                        .data(data));
+            } catch (IOException e) {
+                emitters.remove(memberId);
+            }
+        }
     }
 
     /**

@@ -10,6 +10,13 @@
         AND status = 'ACTIVE'
     </select>
 
+    <select id="findById" parameterType="long" resultType="Member">
+        SELECT
+            member_id, login_id, password, email, nickname, bio, profile_image, status, created_at, updated_at, deleted_at
+        FROM members
+        WHERE member_id = #{memberId}
+    </select>
+
     <select id="countByLoginId" parameterType="string" resultType="int">
         SELECT COUNT(*)
         FROM members

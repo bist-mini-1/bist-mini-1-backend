@@ -10,6 +10,8 @@ public interface MemberDao {
 
     Member selectByLoginId(@Param("loginId") String loginId);
 
+    Member findById(@Param("memberId") Long memberId);
+
     int countByLoginId(@Param("loginId") String loginId);
 
     int countByEmail(@Param("email") String email);

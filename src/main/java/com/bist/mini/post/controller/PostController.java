@@ -50,6 +50,15 @@ public class PostController {
         return ApiResponse.success(postService.convertToResponse(post, memberId));
     }
 
+    @Operation(summary = "내 글 여부 확인", description = "현재 로그인한 사용자가 해당 게시글 작성자인지 확인합니다.")
+    @GetMapping("/{postId}/mine")
+    public ApiResponse<Boolean> isMyPost(
+            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @LoginMember Long memberId) {
+        log.debug("게시글 작성자 확인 요청: postId={}, memberId={}", postId, memberId);
+        return ApiResponse.success(postService.isMyPost(postId, memberId));
+    }
+
     @Operation(summary = "게시글 수정", description = "게시글 내용을 수정합니다. (작성자만 가능)")
     @PutMapping("/{postId}")
     public ApiResponse<PostResponse> updatePost(

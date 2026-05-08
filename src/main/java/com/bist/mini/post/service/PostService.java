@@ -67,6 +67,13 @@ public class PostService {
         return post;
     }
 
+    public boolean isMyPost(Long postId, Long memberId) {
+        validateMember(memberId);
+
+        Post post = getPostById(postId);
+        return post.getMemberId().equals(memberId);
+    }
+
     @Transactional
     public Post getPostDetailWithViewCount(Long postId, Long memberId) {
         Post post = postQueryDao.findById(postId);

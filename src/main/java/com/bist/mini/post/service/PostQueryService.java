@@ -22,10 +22,18 @@ public class PostQueryService {
     /**
      * 전체 공개 게시글 목록을 페이징 처리하여 조회합니다.
      */
-    public PostPageResponse getPostList(int page, int size, Long memberId) {
+    public PostPageResponse getPostList(int page, int size, String keyword, Long memberId) {
         int offset = (page - 1) * size;
 
-        List<PostListResponse> posts = postQueryDao.selectPostList(offset, size, memberId);
+        if (keyword != null) {
+            keyword = keyword.trim();
+
+            if (keyword.isEmpty()) {
+                keyword = null;
+            }
+        }
+
+        List<PostListResponse> posts = postQueryDao.selectPostList(offset, size, keyword, memberId);
 
         if (!posts.isEmpty()) {
             List<Long> postIds = posts.stream()
@@ -45,7 +53,7 @@ public class PostQueryService {
             }
         }
 
-        long totalCount = postQueryDao.countPostList();
+        long totalCount = postQueryDao.countPostList(keyword);
         int totalPages = (int) Math.ceil((double) totalCount / size);
 
         return PostPageResponse.builder()

@@ -29,8 +29,9 @@ public interface PostQueryDao {
     List<PostListResponse> selectPostList(
             @Param("offset") int offset,
             @Param("size") int size,
+            @Param("keyword") String keyword,
             @Param("memberId") Long memberId
     );
 
-    long countPostList();
+    long countPostList(@Param("keyword") String keyword);
 }

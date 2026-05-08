@@ -30,8 +30,9 @@ public class PostQueryController {
     public PostPageResponse getPostList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
             @LoginMember(required = false) Long memberId
     ) {
-        return postQueryService.getPostList(page, size, memberId);
+        return postQueryService.getPostList(page, size, keyword, memberId);
     }
 }

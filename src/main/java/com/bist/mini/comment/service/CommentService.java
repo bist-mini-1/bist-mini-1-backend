@@ -101,4 +101,13 @@ public class CommentService {
 
         return deletedList;
     }
+ 
+    /**
+     * 내 댓글 여부 확인
+     */
+    public boolean isMyComment(Long commentId, Long memberId) {
+        if (memberId == null) return false;
+        Comment comment = commentDao.findById(commentId);
+        return comment != null && comment.getMemberId().equals(memberId);
+    }
 }

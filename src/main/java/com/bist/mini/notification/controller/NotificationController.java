@@ -58,10 +58,12 @@ public class NotificationController {
     public ApiResponse<List<NotificationResponseDto>> getNotifications(
             @RequestHeader("Authorization") String token) {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
+        log.info("Fetching notifications for member: {}", memberId);
         List<NotificationResponseDto> notifications = notificationService.getNotifications(memberId)
                 .stream()
                 .map(NotificationResponseDto::from)
                 .collect(Collectors.toList());
+        log.info("Found {} notifications for member: {}", notifications.size(), memberId);
         return ApiResponse.success(notifications);
     }
 

@@ -39,12 +39,17 @@ public class NotificationAspect {
      */
     @AfterReturning(pointcut = "commentCreated()", returning = "comment")
     public void afterCommentCreated(Comment comment) {
+        log.info("NotificationAspect: After comment created. CommentId: {}", comment != null ? comment.getCommentId() : "null");
         try {
             if (comment == null) return;
 
             Post post = postQueryDao.findById(comment.getPostId());
-            if (post == null) return;
+            if (post == null) {
+                log.warn("NotificationAspect: Post not found for ID: {}", comment.getPostId());
+                return;
+            }
 
+            log.info("NotificationAspect: Sending comment notification to member: {}", post.getMemberId());
             notificationService.createNotification(
                     post.getMemberId(), // receiver
                     comment.getMemberId(), // sender
@@ -63,12 +68,17 @@ public class NotificationAspect {
      */
     @AfterReturning(pointcut = "likeToggled() && args(postId, memberId)", returning = "isLiked")
     public void afterLikeToggled(Long postId, Long memberId, boolean isLiked) {
+        log.info("NotificationAspect: After like toggled. PostId: {}, MemberId: {}, isLiked: {}", postId, memberId, isLiked);
         try {
             if (!isLiked) return; // 좋아요 취소인 경우 알림 안함
 
             Post post = postQueryDao.findById(postId);
-            if (post == null) return;
+            if (post == null) {
+                log.warn("NotificationAspect: Post not found for ID: {}", postId);
+                return;
+            }
 
+            log.info("NotificationAspect: Sending like notification to member: {}", post.getMemberId());
             notificationService.createNotification(
                     post.getMemberId(), // receiver
                     memberId, // sender

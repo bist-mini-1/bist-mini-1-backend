@@ -21,12 +21,17 @@ public class ChatMessageResponse {
     private String content;
     private LocalDateTime createdAt;
     private int unreadCount; // 안 읽은 인원 수 (1:1에서는 0 또는 1)
+    private boolean isMine;
 
     public static ChatMessageResponse from(ChatMessage message) {
-        return from(message, 0);
+        return from(message, 0, false);
     }
 
     public static ChatMessageResponse from(ChatMessage message, int unreadCount) {
+        return from(message, unreadCount, false);
+    }
+
+    public static ChatMessageResponse from(ChatMessage message, int unreadCount, boolean isMine) {
         return ChatMessageResponse.builder()
                 .messageId(message.getMessageId())
                 .roomId(message.getRoomId())
@@ -36,6 +41,7 @@ public class ChatMessageResponse {
                 .content(message.getContent())
                 .createdAt(message.getCreatedAt())
                 .unreadCount(unreadCount)
+                .isMine(isMine)
                 .build();
     }
 }

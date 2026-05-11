@@ -46,4 +46,22 @@
         AND created_at > NVL(#{lastReadAt, jdbcType=TIMESTAMP}, TO_DATE('1900-01-01', 'YYYY-MM-DD'))
     </select>
 
+    <select id="findMessageById" resultMap="chatMessageResultMap">
+        SELECT cm.*, m.nickname as sender_nickname
+        FROM chat_messages cm
+        JOIN members m ON cm.sender_id = m.member_id
+        WHERE cm.message_id = #{messageId}
+    </select>
+
+    <update id="updateMessage">
+        UPDATE chat_messages
+        SET content = #{content}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <delete id="deleteMessage">
+        DELETE FROM chat_messages
+        WHERE message_id = #{messageId}
+    </delete>
+
 </mapper>

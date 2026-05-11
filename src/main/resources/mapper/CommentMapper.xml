@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bist.mini.comment.dao.CommentDao">
 
-    <select id="findByPostId" parameterType="long" resultType="Comment">
+    <select id="findByPostId" resultType="Comment">
         SELECT 
             comment_id,
             post_id,
@@ -16,7 +16,8 @@
         FROM comments
         WHERE post_id = #{postId}
           AND is_deleted = 'N'
-        ORDER BY created_at ASC
+        ORDER BY created_at DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
     </select>
 
     <select id="findById" parameterType="long" resultType="Comment">
@@ -101,5 +102,12 @@
         WHERE comment_id = #{commentId}
            OR parent_id = #{commentId}
     </update>
+
+    <select id="countByPostId" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </select>
 
 </mapper>

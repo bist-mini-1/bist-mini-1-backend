@@ -12,6 +12,9 @@ import com.bist.mini.member.dao.MemberDao;
 import com.bist.mini.member.entity.Member;
 import com.bist.mini.notification.entity.NotificationType;
 import com.bist.mini.notification.service.NotificationService;
+import com.bist.mini.post.dao.PostQueryDao;
+import com.bist.mini.post.entity.Post;
+import com.bist.mini.comment.dto.CommentListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +34,21 @@ public class CommentService {
     private final MemberDao memberDao;
     private final CommentLikeDao commentLikeDao;
     private final NotificationService notificationService;
+    private final PostQueryDao postQueryDao;
 
     /**
-     * 게시글별 댓글 목록 조회
+     * 게시글별 댓글 목록 조회 (페이징 적용)
      */
-    public List<CommentResponse> getCommentsByPost(Long postId, Long currentMemberId, Long postAuthorId) {
-        List<Comment> comments = commentDao.findByPostId(postId);
+    public CommentListResponse getCommentsByPost(Long postId, Long currentMemberId, int page, int size) {
+        int offset = (page - 1) * size;
+        List<Comment> comments = commentDao.findByPostId(postId, offset, size);
+        int totalCount = commentDao.countByPostId(postId);
         
-        return comments.stream().map(comment -> {
+        // 게시글 정보 조회 (삭제 권한 체크용)
+        Post post = postQueryDao.findById(postId);
+        Long postAuthorId = (post != null) ? post.getMemberId() : null;
+
+        List<CommentResponse> commentResponses = comments.stream().map(comment -> {
             String nickname = "알 수 없는 사용자";
             String profileImageUrl = null;
             
@@ -51,8 +61,14 @@ public class CommentService {
             int likeCount = commentLikeDao.countByCommentId(comment.getCommentId());
             boolean isLiked = currentMemberId != null && commentLikeDao.existsLike(comment.getCommentId(), currentMemberId) > 0;
 
-            return CommentResponse.from(comment, nickname, profileImageUrl, likeCount, isLiked);
+            // 본인 여부 및 삭제 권한 계산
+            boolean isMine = currentMemberId != null && comment.getMemberId().equals(currentMemberId);
+            boolean canDelete = isMine || (currentMemberId != null && currentMemberId.equals(postAuthorId));
+
+            return CommentResponse.from(comment, nickname, profileImageUrl, likeCount, isLiked, isMine, canDelete);
         }).collect(Collectors.toList());
+
+        return CommentListResponse.of(commentResponses, totalCount);
     }
 
     /**
@@ -145,14 +161,20 @@ public class CommentService {
         return getCommentDetail(commentId);
     }
 
-    /**
-     * 댓글 삭제 (논리 삭제) - 자식 댓글까지 모두 삭제하고 삭제된 목록 반환
-     */
     @Transactional
     public List<Comment> deleteComment(Long commentId, Long memberId) {
         Comment rootComment = getCommentDetail(commentId);
 
-        if (!rootComment.getMemberId().equals(memberId)) {
+        // 댓글 작성자이거나 게시글 작성자인 경우 삭제 가능
+        boolean isAuthor = rootComment.getMemberId().equals(memberId);
+        boolean isPostOwner = false;
+        
+        Post post = postQueryDao.findById(rootComment.getPostId());
+        if (post != null && post.getMemberId().equals(memberId)) {
+            isPostOwner = true;
+        }
+
+        if (!isAuthor && !isPostOwner) {
             throw new CustomException(ErrorCode.COMMENT_ACCESS_DENIED);
         }
 

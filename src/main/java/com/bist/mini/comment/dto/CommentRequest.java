@@ -23,7 +23,7 @@ public class CommentRequest {
     private Long parentId;
 
     @NotBlank(message = "댓글 내용은 필수입니다.")
-    @Size(max = 2000, message = "댓글 내용은 2000자 이내로 입력해 주세요.")
+    @Size(max = 500, message = "댓글 내용은 500자 이내로 입력해 주세요.")
     @Schema(description = "댓글 내용", example = "정말 유익한 포스팅이네요!")
     private String content;
 

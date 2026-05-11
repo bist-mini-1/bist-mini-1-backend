@@ -10,12 +10,16 @@ import com.bist.mini.chat.entity.ChatRoomMember;
 import com.bist.mini.chat.entity.ChatRoomType;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
+import com.bist.mini.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +32,8 @@ public class ChatService {
 
     private final ChatRoomDao chatRoomDao;
     private final ChatMessageDao chatMessageDao;
+    private final SimpMessageSendingOperations messagingTemplate;
+    private final NotificationService notificationService;
 
     /**
      * 1:1 채팅방 조회 또는 생성
@@ -85,13 +91,22 @@ public class ChatService {
                 for (ChatRoomMember m : members) {
                     if (!m.getMemberId().equals(memberId)) {
                         partnerNickname = m.getNickname();
-                        partnerProfileImage = m.getProfileImage();
                         break;
                     }
                 }
             }
 
-            return ChatRoomResponse.of(room, lastContent, lastTime, partnerNickname, partnerProfileImage);
+            // 안 읽은 메시지 수 계산
+            int unreadCount = 0;
+            List<ChatRoomMember> allMembers = chatRoomDao.findMembersByRoomId(room.getRoomId());
+            for (ChatRoomMember rm : allMembers) {
+                if (rm.getMemberId().equals(memberId)) {
+                    unreadCount = chatMessageDao.countUnreadMessages(room.getRoomId(), rm.getLastReadAt());
+                    break;
+                }
+            }
+
+            return ChatRoomResponse.of(room, lastContent, lastTime, partnerNickname, partnerProfileImage, unreadCount);
         }).collect(Collectors.toList());
     }
 
@@ -108,6 +123,16 @@ public class ChatService {
 
         // 마지막 읽은 시간 업데이트
         chatRoomDao.updateLastReadAt(message.getRoomId(), message.getSenderId());
+
+        // 수신자들에게 SSE 알림 전송 (안 읽음 카운트 갱신용)
+        List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(message.getRoomId());
+        for (ChatRoomMember m : members) {
+            if (!m.getMemberId().equals(message.getSenderId())) {
+                // notificationService의 범용 send 메서드 활용
+                // 데이터는 단순 문자열이나 간단한 객체 전송
+                notificationService.send(m.getMemberId(), "new_message", "chat_unread_update");
+            }
+        }
 
         return message;
     }
@@ -128,6 +153,15 @@ public class ChatService {
     @Transactional
     public void markAsRead(Long roomId, Long memberId) {
         chatRoomDao.updateLastReadAt(roomId, memberId);
+        
+        // 읽음 이벤트 전송 (실시간 '1' 제거용)
+        Map<String, Object> readEvent = new HashMap<>();
+        readEvent.put("messageType", "READ"); // 클라이언트 구분을 위해 messageType 필드 활용
+        readEvent.put("roomId", roomId);
+        readEvent.put("senderId", memberId); // 누가 읽었는지
+        readEvent.put("createdAt", LocalDateTime.now()); // 읽은 시간
+        
+        messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, readEvent);
     }
 
     /**
@@ -137,8 +171,24 @@ public class ChatService {
         return ChatMessageResponse.from(message);
     }
 
-    public List<ChatMessageResponse> convertToResponses(List<ChatMessage> messages) {
-        return messages.stream().map(ChatMessageResponse::from).collect(Collectors.toList());
+    public List<ChatMessageResponse> convertToResponses(List<ChatMessage> messages, Long memberId) {
+        if (messages.isEmpty()) return List.of();
+        
+        Long roomId = messages.get(0).getRoomId();
+        List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(roomId);
+        
+        return messages.stream().map(message -> {
+            int unreadCount = 0;
+            for (ChatRoomMember m : members) {
+                if (m.getMemberId().equals(message.getSenderId())) continue;
+                
+                // 상대방이 마지막으로 읽은 시간보다 메시지 생성 시간이 뒤면 안 읽음
+                if (m.getLastReadAt() == null || m.getLastReadAt().isBefore(message.getCreatedAt())) {
+                    unreadCount++;
+                }
+            }
+            return ChatMessageResponse.from(message, unreadCount);
+        }).collect(Collectors.toList());
     }
 
     /**

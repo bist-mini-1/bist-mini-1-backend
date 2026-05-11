@@ -20,8 +20,13 @@ public class ChatMessageResponse {
     private ChatMessageType messageType;
     private String content;
     private LocalDateTime createdAt;
+    private int unreadCount; // 안 읽은 인원 수 (1:1에서는 0 또는 1)
 
     public static ChatMessageResponse from(ChatMessage message) {
+        return from(message, 0);
+    }
+
+    public static ChatMessageResponse from(ChatMessage message, int unreadCount) {
         return ChatMessageResponse.builder()
                 .messageId(message.getMessageId())
                 .roomId(message.getRoomId())
@@ -30,6 +35,7 @@ public class ChatMessageResponse {
                 .messageType(message.getMessageType())
                 .content(message.getContent())
                 .createdAt(message.getCreatedAt())
+                .unreadCount(unreadCount)
                 .build();
     }
 }

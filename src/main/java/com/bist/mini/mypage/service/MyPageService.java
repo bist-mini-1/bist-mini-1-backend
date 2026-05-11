@@ -122,15 +122,17 @@ public class MyPageService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        // 기존 프로필 이미지 파일 삭제
+        // 기존 프로필 이미지 파일 삭제 (BLOB 방식으로 변경됨에 따라 파일 삭제 로직은 주석 처리 또는 재검토 필요)
         MemberProfile existing = myPageDao.selectProfileByMemberId(memberId);
-        if (existing != null && existing.getProfileImage() != null && !existing.getProfileImage().isEmpty()) {
+        if (existing != null && existing.getProfileImage() != null && existing.getProfileImage().length > 0) {
+            /* 
             try {
-                String oldFileName = Paths.get(existing.getProfileImage()).getFileName().toString();
+                // 기존에 String(경로)으로 저장되어 있던 경우에만 동작하던 로직
+                String oldFileName = Paths.get(new String(existing.getProfileImage())).getFileName().toString();
                 Files.deleteIfExists(profileUploadRoot.resolve(oldFileName));
-            } catch (IOException ignored) {
-                // 기존 파일 삭제 실패는 무시하고 진행
+            } catch (Exception ignored) {
             }
+            */
         }
 
         // 저장 파일명 생성 (contentType 기반 확장자 화이트리스트)

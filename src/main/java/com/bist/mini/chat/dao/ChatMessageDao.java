@@ -21,4 +21,7 @@ public interface ChatMessageDao {
 
     // 채팅방의 마지막 메시지 조회
     ChatMessage findLastMessage(Long roomId);
+
+    // 안 읽은 메시지 수 조회
+    int countUnreadMessages(@Param("roomId") Long roomId, @Param("lastReadAt") java.time.LocalDateTime lastReadAt);
 }

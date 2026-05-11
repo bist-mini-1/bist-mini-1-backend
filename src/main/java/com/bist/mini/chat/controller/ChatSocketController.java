@@ -43,7 +43,8 @@ public class ChatSocketController {
 
         // 2. 메시지 저장 및 가공
         ChatMessage savedMessage = chatService.sendMessage(message);
-        ChatMessageResponse response = chatService.convertToResponse(savedMessage);
+        // 새 메시지는 일단 안 읽음 상태(1)로 전송
+        ChatMessageResponse response = ChatMessageResponse.from(savedMessage, 1);
 
         // 3. 해당 채팅방 구독자들에게 메시지 전송 (/sub/chat/room/{roomId})
         messagingTemplate.convertAndSend("/sub/chat/room/" + response.getRoomId(), response);

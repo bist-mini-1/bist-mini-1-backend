@@ -13,10 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 @Service
@@ -29,8 +31,8 @@ public class NotificationService {
     // 메시지 만료 시간 (1시간)
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
     
-    // 사용자별 SSE 연결 관리
-    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    // 사용자별 SSE 연결 관리 (다중 연결 지원을 위해 List 사용)
+    private final Map<Long, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
     /**
      * 회원의 알림 목록 조회
@@ -162,21 +164,22 @@ public class NotificationService {
         
         final Long finalMemberId = Objects.requireNonNull(memberId);
         SseEmitter emitter = new SseEmitter(Objects.requireNonNull(DEFAULT_TIMEOUT));
-        emitters.put(finalMemberId, emitter);
-        log.info("SSE: Emitter created for member {}. Current count: {}", finalMemberId, emitters.size());
+        
+        emitters.computeIfAbsent(finalMemberId, k -> new CopyOnWriteArrayList<>()).add(emitter);
+        log.info("SSE: Emitter created for member {}. Total emitters for member: {}", finalMemberId, emitters.get(finalMemberId).size());
 
         // 연결 종료/타임아웃 시 맵에서 삭제
         emitter.onCompletion(() -> {
             log.info("SSE: Emitter completed for member {}", finalMemberId);
-            emitters.remove(finalMemberId);
+            removeEmitter(finalMemberId, emitter);
         });
         emitter.onTimeout(() -> {
             log.info("SSE: Emitter timeout for member {}", finalMemberId);
-            emitters.remove(finalMemberId);
+            removeEmitter(finalMemberId, emitter);
         });
         emitter.onError((e) -> {
             log.error("SSE: Emitter error for member {}: {}", finalMemberId, e.getMessage());
-            emitters.remove(finalMemberId);
+            removeEmitter(finalMemberId, emitter);
         });
 
         // 503 에러 방지를 위한 더미 데이터 전송
@@ -204,16 +207,27 @@ public class NotificationService {
         final Object finalData = Objects.requireNonNull(data);
 
         log.info("SSE: Sending event {} to member {}", finalEventName, finalMemberId);
-        SseEmitter emitter = emitters.get(finalMemberId);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event()
-                        .name(finalEventName)
-                        .data(finalData));
-                log.info("SSE: Event {} sent to member {}", finalEventName, finalMemberId);
-            } catch (IOException e) {
-                log.error("SSE: Failed to send event to member {}, removing emitter", finalMemberId);
-                emitters.remove(finalMemberId);
+        List<SseEmitter> memberEmitters = emitters.get(finalMemberId);
+        if (memberEmitters != null) {
+            for (SseEmitter emitter : memberEmitters) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name(finalEventName)
+                            .data(finalData));
+                } catch (IOException e) {
+                    log.error("SSE: Failed to send event to member {}, removing one emitter", finalMemberId);
+                    removeEmitter(finalMemberId, emitter);
+                }
+            }
+        }
+    }
+
+    private void removeEmitter(Long memberId, SseEmitter emitter) {
+        List<SseEmitter> list = emitters.get(memberId);
+        if (list != null) {
+            list.remove(emitter);
+            if (list.isEmpty()) {
+                emitters.remove(memberId);
             }
         }
     }
@@ -229,18 +243,19 @@ public class NotificationService {
         final String finalComment = (comment != null) ? comment : "";
 
         log.info("SSE: Sending notification to member {}", finalMemberId);
-        SseEmitter emitter = emitters.get(finalMemberId);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event()
-                        .id(Objects.requireNonNull(String.valueOf(finalMemberId)))
-                        .name("notification")
-                        .data(finalData)
-                        .comment(finalComment));
-                log.info("SSE: Notification sent to member {}", finalMemberId);
-            } catch (IOException e) {
-                log.error("SSE: Failed to send notification to member {}, removing emitter", finalMemberId);
-                emitters.remove(finalMemberId);
+        List<SseEmitter> memberEmitters = emitters.get(finalMemberId);
+        if (memberEmitters != null) {
+            for (SseEmitter emitter : memberEmitters) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .id(Objects.requireNonNull(String.valueOf(finalMemberId)))
+                            .name("notification")
+                            .data(finalData)
+                            .comment(finalComment));
+                } catch (IOException e) {
+                    log.error("SSE: Failed to send notification to member {}, removing one emitter", finalMemberId);
+                    removeEmitter(finalMemberId, emitter);
+                }
             }
         }
     }

@@ -25,8 +25,11 @@ public class ChatRoomResponse {
     // 상대방 정보 (PERSONAL 채팅용)
     private String partnerNickname;
     private String partnerProfileImage;
+    
+    private int unreadCount;
 
-    public static ChatRoomResponse of(ChatRoom room, String lastMessage, LocalDateTime lastMessageTime, String partnerNickname, String partnerProfileImage) {
+    public static ChatRoomResponse of(ChatRoom room, String lastMessage, LocalDateTime lastMessageTime, 
+                                     String partnerNickname, String partnerProfileImage, int unreadCount) {
         return ChatRoomResponse.builder()
                 .roomId(room.getRoomId())
                 .roomName(room.getRoomName())
@@ -36,6 +39,7 @@ public class ChatRoomResponse {
                 .lastMessageTime(lastMessageTime)
                 .partnerNickname(partnerNickname)
                 .partnerProfileImage(partnerProfileImage)
+                .unreadCount(unreadCount)
                 .build();
     }
 }

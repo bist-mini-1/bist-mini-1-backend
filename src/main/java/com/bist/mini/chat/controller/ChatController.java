@@ -71,7 +71,7 @@ public class ChatController {
             @RequestParam(value = "size", defaultValue = "20") int size) {
         log.debug("메시지 내역 조회 요청: roomId={}, memberId={}, page={}", roomId, memberId, page);
         List<ChatMessage> history = chatService.getMessageHistory(roomId, memberId, page, size);
-        return ApiResponse.success(chatService.convertToResponses(history));
+        return ApiResponse.success(chatService.convertToResponses(history, memberId));
     }
 
     @Operation(summary = "메시지 전송 (REST)", description = "채팅 메시지를 전송합니다. (실시간은 WebSocket 권장)")

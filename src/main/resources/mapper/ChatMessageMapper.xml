@@ -39,4 +39,11 @@
         ) WHERE ROWNUM = 1
     </select>
 
+    <select id="countUnreadMessages" resultType="int">
+        SELECT COUNT(*)
+        FROM chat_messages
+        WHERE room_id = #{roomId}
+        AND created_at > NVL(#{lastReadAt}, TO_DATE('1900-01-01', 'YYYY-MM-DD'))
+    </select>
+
 </mapper>

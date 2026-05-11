@@ -12,7 +12,7 @@ public class Member {
     private String email;
     private String nickname;
     private String bio;
-    private byte[] profileImage;
+    private String profileImage; // DB 저장 경로 (예: /uploads/profile/uuid.jpg)
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

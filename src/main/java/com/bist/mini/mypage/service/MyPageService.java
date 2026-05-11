@@ -166,6 +166,26 @@ public class MyPageService {
                 .toList();
     }
 
+    // ── 타인 프로필 조회 ──────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public MemberProfileResponse getUserProfile(Long memberId, String baseUrl) {
+        MemberProfile profile = myPageDao.selectProfileByMemberId(memberId);
+        if (profile == null) {
+            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+        }
+        return MemberProfileResponse.from(profile, baseUrl);
+    }
+
+    // ── 타인 공개 게시글 목록 ──────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<MyPostResponse> getUserPosts(Long memberId) {
+        return postQueryDao.findPublicByMemberId(memberId).stream()
+                .map(MyPostResponse::from)
+                .toList();
+    }
+
     // ── 북마크한 게시글 목록 ────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)

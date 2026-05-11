@@ -48,6 +48,19 @@
         ORDER BY created_at DESC
     </select>
 
+    <!-- 특정 유저의 공개 게시글 목록 (타인 프로필 조회용) -->
+    <select id="findPublicByMemberId" parameterType="long" resultMap="postResultMap">
+        SELECT
+        post_id, member_id, title, content, view_count, like_count, comment_count,
+        is_public, is_temp, is_deleted, created_at, updated_at, deleted_at
+        FROM posts
+        WHERE member_id = #{param1}
+        AND is_deleted = 'N'
+        AND is_temp = 'N'
+        AND is_public = 'Y'
+        ORDER BY created_at DESC
+    </select>
+
     <select id="findTempByMemberId" parameterType="long" resultMap="postResultMap">
         SELECT
         post_id, member_id, title, content, view_count, like_count, comment_count,

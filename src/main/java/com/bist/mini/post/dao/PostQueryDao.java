@@ -18,6 +18,9 @@ public interface PostQueryDao {
 
     List<Post> findByMemberId(Long memberId);
 
+    /** 특정 유저의 공개 게시글만 조회 (타인 프로필 조회용) */
+    List<Post> findPublicByMemberId(Long memberId);
+
     List<Post> findTempByMemberId(Long memberId);
 
     Post findById(Long id);

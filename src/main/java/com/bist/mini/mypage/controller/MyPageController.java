@@ -68,6 +68,28 @@ public class MyPageController {
         return ApiResponse.success(myPageService.getMyPosts(memberId));
     }
 
+    // ── 타인 프로필 조회 ─────────────────────────────────────────────────────────
+
+    @Operation(summary = "유저 프로필 조회", description = "특정 회원의 공개 프로필 정보를 조회합니다.")
+    @GetMapping("/{memberId}/profile")
+    public ApiResponse<MemberProfileResponse> getUserProfile(
+            @org.springframework.web.bind.annotation.PathVariable Long memberId,
+            HttpServletRequest httpRequest
+    ) {
+        String baseUrl = extractBaseUrl(httpRequest);
+        return ApiResponse.success(myPageService.getUserProfile(memberId, baseUrl));
+    }
+
+    // ── 타인 공개 게시글 목록 ───────────────────────────────────────────────────
+
+    @Operation(summary = "유저 게시글 목록 조회", description = "특정 회원이 작성한 공개 게시글 목록을 조회합니다.")
+    @GetMapping("/{memberId}/posts")
+    public ApiResponse<List<MyPostResponse>> getUserPosts(
+            @org.springframework.web.bind.annotation.PathVariable Long memberId
+    ) {
+        return ApiResponse.success(myPageService.getUserPosts(memberId));
+    }
+
     // ── 북마크한 게시글 목록 ────────────────────────────────────────────────────
 
     @Operation(summary = "북마크한 게시글 목록 조회", description = "로그인된 회원이 북마크한 게시글 목록을 조회합니다.")

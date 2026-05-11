@@ -8,7 +8,7 @@ import java.util.List;
 
 @Mapper
 public interface NotificationDao {
-    
+
     /**
      * 알림 생성
      */
@@ -35,10 +35,20 @@ public interface NotificationDao {
     void markAllAsRead(@Param("receiverId") Long receiverId);
 
     /**
+     * 알림 삭제
+     */
+    void delete(@Param("notificationId") Long notificationId);
+
+    /**
+     * 모든 알림 삭제
+     */
+    void deleteAll(@Param("receiverId") Long receiverId);
+
+    /**
      * 중복 알림 체크 (팔로우 등에서 사용)
      */
-    int countDuplicate(@Param("receiverId") Long receiverId, 
-                       @Param("senderId") Long senderId, 
-                       @Param("type") String type,
-                       @Param("postId") Long postId);
+    int countDuplicate(@Param("receiverId") Long receiverId,
+            @Param("senderId") Long senderId,
+            @Param("type") String type,
+            @Param("postId") Long postId);
 }

@@ -3,6 +3,7 @@ package com.bist.mini.follow.controller;
 import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.follow.dto.FollowCountResponse;
+import com.bist.mini.follow.dto.FollowListResponse;
 import com.bist.mini.follow.service.FollowService;
 import com.bist.mini.mypage.dto.MyPostResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,10 @@ public class FollowController {
     private Long extractMemberId(HttpServletRequest httpRequest) {
         String authorization = httpRequest.getHeader("Authorization");
         return jwtProvider.getMemberIdFromToken(authorization);
+    }
+
+    private String extractBaseUrl(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
     }
 
     // ── 팔로우 ─────────────────────────────────────────────────────────────────
@@ -72,24 +77,28 @@ public class FollowController {
         return ApiResponse.success(followService.getFollowCount(memberId));
     }
 
-    // ── 팔로워 수 조회 ────────────────────────────────────────────────────────
+    // ── 팔로워 목록 조회 ──────────────────────────────────────────────────────────
 
-    @Operation(summary = "팔로워 수 조회", description = "특정 사용자를 팔로우하는 사람 수를 조회합니다.")
-    @GetMapping("/{memberId}/followers/count")
-    public ApiResponse<Long> getFollowerCount(
-            @PathVariable Long memberId
+    @Operation(summary = "팔로워 목록 조회", description = "특정 사용자를 팔로우하는 사람들의 목록을 조회합니다.")
+    @GetMapping("/{memberId}/followers")
+    public ApiResponse<FollowListResponse> getFollowers(
+            @PathVariable Long memberId,
+            HttpServletRequest httpRequest
     ) {
-        return ApiResponse.success(followService.getFollowerCount(memberId));
+        String baseUrl = extractBaseUrl(httpRequest);
+        return ApiResponse.success(followService.getFollowers(memberId, baseUrl));
     }
 
-    // ── 팔로잉 수 조회 ────────────────────────────────────────────────────────
+    // ── 팔로잉 목록 조회 ──────────────────────────────────────────────────────────
 
-    @Operation(summary = "팔로잉 수 조회", description = "특정 사용자가 팔로우하는 사람 수를 조회합니다.")
-    @GetMapping("/{memberId}/followings/count")
-    public ApiResponse<Long> getFollowingCount(
-            @PathVariable Long memberId
+    @Operation(summary = "팔로잉 목록 조회", description = "특정 사용자가 팔로우하는 사람들의 목록을 조회합니다.")
+    @GetMapping("/{memberId}/followings")
+    public ApiResponse<FollowListResponse> getFollowings(
+            @PathVariable Long memberId,
+            HttpServletRequest httpRequest
     ) {
-        return ApiResponse.success(followService.getFollowingCount(memberId));
+        String baseUrl = extractBaseUrl(httpRequest);
+        return ApiResponse.success(followService.getFollowings(memberId, baseUrl));
     }
 
     // ── 팔로우한 사용자 게시글 조회 ──────────────────────────────────────────────

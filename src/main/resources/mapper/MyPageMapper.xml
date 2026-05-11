@@ -10,8 +10,7 @@
             login_id,
             email,
             nickname,
-            bio,
-            profile_image
+            bio
         FROM members
         WHERE member_id = #{memberId}
           AND status = 'ACTIVE'

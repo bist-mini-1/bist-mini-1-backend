@@ -8,7 +8,6 @@
         <result property="email" column="email"/>
         <result property="nickname" column="nickname"/>
         <result property="bio" column="bio"/>
-        <result property="profileImage" column="profile_image" jdbcType="BLOB"/>
         <result property="status" column="status"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
@@ -40,7 +39,6 @@
         email,
         nickname,
         bio,
-        profile_image,
         status,
         created_at,
         updated_at,

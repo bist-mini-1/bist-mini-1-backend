@@ -4,6 +4,8 @@ import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.follow.dao.FollowDao;
 import com.bist.mini.follow.dto.FollowCountResponse;
+import com.bist.mini.follow.dto.FollowListResponse;
+import com.bist.mini.follow.dto.FollowUserResponse;
 import com.bist.mini.member.dao.MemberDao;
 import com.bist.mini.member.entity.Member;
 import com.bist.mini.mypage.dto.MyPostResponse;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 팔로우 비즈니스 로직 서비스
@@ -71,18 +74,38 @@ public class FollowService {
                 .build();
     }
 
-    // ── 팔로워 수 조회 (나를 팔로우하는 사람 수) ──────────────────────────────────
+    // ── 팔로워 목록 조회 (나를 팔로우하는 사람 목록) ──────────────────────────────
 
     @Transactional(readOnly = true)
-    public long getFollowerCount(Long memberId) {
-        return followDao.countFollowers(memberId);
+    public FollowListResponse getFollowers(Long memberId, String baseUrl) {
+        List<FollowUserResponse> users = followDao.selectFollowers(memberId).stream()
+                .map(u -> FollowUserResponse.builder()
+                        .memberId(u.getMemberId())
+                        .nickname(u.getNickname())
+                        .profileImage(buildProfileImageUrl(u.getProfileImage(), baseUrl))
+                        .build())
+                .collect(Collectors.toList());
+        return FollowListResponse.builder()
+                .count(users.size())
+                .users(users)
+                .build();
     }
 
-    // ── 팔로잉 수 조회 (내가 팔로우하는 사람 수) ──────────────────────────────────
+    // ── 팔로잉 목록 조회 (내가 팔로우하는 사람 목록) ──────────────────────────────
 
     @Transactional(readOnly = true)
-    public long getFollowingCount(Long memberId) {
-        return followDao.countFollowings(memberId);
+    public FollowListResponse getFollowings(Long memberId, String baseUrl) {
+        List<FollowUserResponse> users = followDao.selectFollowings(memberId).stream()
+                .map(u -> FollowUserResponse.builder()
+                        .memberId(u.getMemberId())
+                        .nickname(u.getNickname())
+                        .profileImage(buildProfileImageUrl(u.getProfileImage(), baseUrl))
+                        .build())
+                .collect(Collectors.toList());
+        return FollowListResponse.builder()
+                .count(users.size())
+                .users(users)
+                .build();
     }
 
     // ── 팔로우한 사용자 게시글 조회 ──────────────────────────────────────────────
@@ -92,5 +115,13 @@ public class FollowService {
         return followDao.selectFollowingPosts(memberId).stream()
                 .map(MyPostResponse::from)
                 .toList();
+    }
+
+    // ── 내부 헬퍼 ─────────────────────────────────────────────────────────────
+
+    private String buildProfileImageUrl(String profileImage, String baseUrl) {
+        if (profileImage == null || profileImage.isBlank()) return null;
+        if (profileImage.startsWith("http")) return profileImage;
+        return baseUrl + profileImage;
     }
 }

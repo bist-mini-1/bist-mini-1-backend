@@ -1,5 +1,6 @@
 package com.bist.mini.follow.dao;
 
+import com.bist.mini.follow.dto.FollowUserResponse;
 import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -26,6 +27,12 @@ public interface FollowDao {
 
     /** 내가 팔로우하는 사람 수 (팔로잉 수) */
     long countFollowings(@Param("memberId") Long memberId);
+
+    /** 나를 팔로우하는 사람 목록 (팔로워 목록) */
+    List<FollowUserResponse> selectFollowers(@Param("memberId") Long memberId);
+
+    /** 내가 팔로우하는 사람 목록 (팔로잉 목록) */
+    List<FollowUserResponse> selectFollowings(@Param("memberId") Long memberId);
 
     /** 내가 팔로우한 사용자들의 게시글 목록 조회 */
     List<Post> selectFollowingPosts(@Param("memberId") Long memberId);

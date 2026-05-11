@@ -76,38 +76,48 @@ public class ChatService {
      * 회원의 채팅방 목록 조회
      */
     public List<ChatRoomResponse> getRoomList(Long memberId) {
+        if (memberId == null) return List.of();
         List<ChatRoom> rooms = chatRoomDao.findRoomsByMemberId(memberId);
+        if (rooms == null) return List.of();
 
         return rooms.stream().map(room -> {
             ChatMessage lastMsg = chatMessageDao.findLastMessage(room.getRoomId());
             String lastContent = (lastMsg != null) ? lastMsg.getContent() : "대화 내용이 없습니다.";
-            LocalDateTime lastTime = (lastMsg != null) ? lastMsg.getCreatedAt() : room.getCreatedAt();
+            
+            // lastTime이 null인 경우 방 생성 시간을 기본값으로 사용
+            LocalDateTime lastTime = (lastMsg != null && lastMsg.getCreatedAt() != null) 
+                    ? lastMsg.getCreatedAt() 
+                    : (room.getCreatedAt() != null ? room.getCreatedAt() : LocalDateTime.now());
 
             String partnerNickname = null;
             String partnerProfileImage = null;
 
-            if (room.getRoomType() == ChatRoomType.PERSONAL) {
+            if (room.getRoomType() != null && room.getRoomType() == ChatRoomType.PERSONAL) {
                 List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(room.getRoomId());
-                for (ChatRoomMember m : members) {
-                    if (!m.getMemberId().equals(memberId)) {
-                        partnerNickname = m.getNickname();
-                        break;
+                if (members != null) {
+                    for (ChatRoomMember m : members) {
+                        if (m.getMemberId() != null && !m.getMemberId().equals(memberId)) {
+                            partnerNickname = m.getNickname();
+                            // profileImage (byte[])는 필요시 Base64 등으로 변환하여 처리 가능
+                            break;
+                        }
                     }
                 }
             }
 
-            // 안 읽은 메시지 수 계산
-            int unreadCount = 0;
-            List<ChatRoomMember> allMembers = chatRoomDao.findMembersByRoomId(room.getRoomId());
-            for (ChatRoomMember rm : allMembers) {
-                if (rm.getMemberId().equals(memberId)) {
-                    unreadCount = chatMessageDao.countUnreadMessages(room.getRoomId(), rm.getLastReadAt());
-                    break;
-                }
-            }
-
-            return ChatRoomResponse.of(room, lastContent, lastTime, partnerNickname, partnerProfileImage, unreadCount);
+            return ChatRoomResponse.of(room, lastContent, lastTime, partnerNickname, partnerProfileImage, unreadCount(room.getRoomId(), memberId));
         }).collect(Collectors.toList());
+    }
+
+    private int unreadCount(Long roomId, Long memberId) {
+        List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(roomId);
+        if (members == null) return 0;
+        for (ChatRoomMember rm : members) {
+            if (rm.getMemberId() != null && rm.getMemberId().equals(memberId)) {
+                return chatMessageDao.countUnreadMessages(roomId, rm.getLastReadAt());
+            }
+        }
+        return 0;
     }
 
     /**

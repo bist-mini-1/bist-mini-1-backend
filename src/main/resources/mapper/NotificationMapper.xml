@@ -24,10 +24,10 @@
             #{senderId, jdbcType=NUMERIC}, 
             #{postId, jdbcType=NUMERIC}, 
             #{commentId, jdbcType=NUMERIC}, 
-            #{type}, 
+            #{type, jdbcType=VARCHAR}, 
             #{message},
             #{isRead},
-            #{createdAt}
+            SYSDATE
         )
     </insert>
 

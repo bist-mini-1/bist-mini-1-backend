@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,10 +26,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class NotificationService {
 
     private final NotificationDao notificationDao;
-    
+
     // 메시지 만료 시간 (1시간)
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
-    
+
     // 사용자별 SSE 연결 관리 (다중 연결 지원을 위해 List 사용)
     private final Map<Long, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
@@ -51,7 +50,7 @@ public class NotificationService {
         if (notificationId == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
-        
+
         Notification notification = notificationDao.findById(notificationId);
         if (notification == null) {
             throw new CustomException(ErrorCode.NOTIFICATION_NOT_FOUND);
@@ -115,14 +114,16 @@ public class NotificationService {
      * 알림 생성 (댓글, 좋아요, 팔로우 시 호출)
      */
     @Transactional
-    public void createNotification(Long receiverId, Long senderId, Long postId, Long commentId, NotificationType type, String message) {
+    public void createNotification(Long receiverId, Long senderId, Long postId, Long commentId, NotificationType type,
+            String message) {
         if (receiverId == null || type == null) {
             log.warn("Notification creation failed: receiverId or type is null");
             return;
         }
 
-        log.info("Creating notification: type={}, receiver={}, sender={}, message={}", type, receiverId, senderId, message);
-        
+        log.info("Creating notification: type={}, receiver={}, sender={}, message={}", type, receiverId, senderId,
+                message);
+
         // 본인이 본인 글에 액션을 취한 경우 알림 제외
         if (receiverId.equals(senderId)) {
             log.info("Skipping notification: self-action by member {}", senderId);
@@ -160,13 +161,15 @@ public class NotificationService {
      * SSE 연결 생성
      */
     public SseEmitter subscribe(Long memberId) {
-        if (memberId == null) return null;
-        
+        if (memberId == null)
+            return null;
+
         final Long finalMemberId = Objects.requireNonNull(memberId);
         SseEmitter emitter = new SseEmitter(Objects.requireNonNull(DEFAULT_TIMEOUT));
-        
+
         emitters.computeIfAbsent(finalMemberId, k -> new CopyOnWriteArrayList<>()).add(emitter);
-        log.info("SSE: Emitter created for member {}. Total emitters for member: {}", finalMemberId, emitters.get(finalMemberId).size());
+        log.info("SSE: Emitter created for member {}. Total emitters for member: {}", finalMemberId,
+                emitters.get(finalMemberId).size());
 
         // 연결 종료/타임아웃 시 맵에서 삭제
         emitter.onCompletion(() -> {
@@ -200,7 +203,8 @@ public class NotificationService {
      * 클라이언트에게 데이터 전송 (커스텀 이벤트)
      */
     public void send(Long memberId, Object data, String eventName) {
-        if (memberId == null || data == null || eventName == null) return;
+        if (memberId == null || data == null || eventName == null)
+            return;
 
         final Long finalMemberId = Objects.requireNonNull(memberId);
         final String finalEventName = Objects.requireNonNull(eventName);
@@ -236,7 +240,8 @@ public class NotificationService {
      * 클라이언트에게 알림 전송 (기본 notification 이벤트)
      */
     private void sendToClient(Long memberId, Object data, String comment) {
-        if (memberId == null || data == null) return;
+        if (memberId == null || data == null)
+            return;
 
         final Long finalMemberId = Objects.requireNonNull(memberId);
         final Object finalData = Objects.requireNonNull(data);

@@ -4,8 +4,6 @@ import com.bist.mini.comment.entity.CommentLike;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Optional;
-
 /**
  * 댓글 좋아요 데이터 접근 객체
  */

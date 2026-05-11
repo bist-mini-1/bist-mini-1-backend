@@ -44,9 +44,9 @@ public class FollowService {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
 
-        // 중복 팔로우 방지
+        // 중복 팔로우 방지 (이미 팔로우 중이면 무시)
         if (followDao.countFollow(followerId, followingId) > 0) {
-            throw new CustomException(ErrorCode.FOLLOW_ALREADY_EXISTS);
+            return;
         }
 
         followDao.insertFollow(followerId, followingId);

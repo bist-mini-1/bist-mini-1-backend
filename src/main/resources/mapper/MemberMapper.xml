@@ -67,7 +67,7 @@
         WHERE nickname = #{nickname}
     </select>
 
-    <insert id="insertMember" parameterType="com.bist.mini.member.dto.JoinRequestDto">
+    <insert id="insertMember" parameterType="com.bist.mini.member.dto.JoinRequest">
         INSERT INTO members (
         login_id, password, email,nickname,bio, status, created_at
         ) VALUES (

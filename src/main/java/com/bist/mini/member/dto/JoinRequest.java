@@ -6,8 +6,10 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
-public class JoinRequestDto {
+public class JoinRequest {
 
     @NotBlank(message = "아이디를 입력해주세요.")
     @Pattern(
@@ -36,4 +38,6 @@ public class JoinRequestDto {
 
     @Size(max = 1000, message = "자기소개는 1000자 이하로 입력해주세요.")
     private String bio;
+
+    private List<Long> interestTagIds;
 }

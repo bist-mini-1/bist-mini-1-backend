@@ -1,8 +1,8 @@
 package com.bist.mini.member.controller;
 
-import com.bist.mini.member.dto.JoinRequestDto;
-import com.bist.mini.member.dto.LoginRequestDto;
-import com.bist.mini.member.dto.LoginResponseDto;
+import com.bist.mini.member.dto.JoinRequest;
+import com.bist.mini.member.dto.LoginRequest;
+import com.bist.mini.member.dto.LoginResponse;
 import com.bist.mini.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +16,13 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/login")
-    public LoginResponseDto login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
-        return memberService.login(loginRequestDto);
+    public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest) {
+        return memberService.login(loginRequest);
     }
 
     @PostMapping("/join")
-    public String join(@Valid @RequestBody JoinRequestDto joinRequestDto) {
-        return memberService.join(joinRequestDto);
+    public String join(@Valid @RequestBody JoinRequest joinRequest) {
+        return memberService.join(joinRequest);
     }
 
     @GetMapping("/check-login-id")

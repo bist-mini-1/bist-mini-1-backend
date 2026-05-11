@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class LoginRequestDto {
+public class LoginRequest {
 
     @NotBlank(message = "아이디를 입력해주세요.")
     @Schema(example = "kosa")

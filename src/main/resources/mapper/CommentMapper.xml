@@ -110,4 +110,25 @@
           AND is_deleted = 'N'
     </select>
 
+    <select id="findBestCommentByPostId" resultType="Comment">
+        SELECT * FROM (
+            SELECT 
+                c.comment_id,
+                c.post_id,
+                c.member_id,
+                c.parent_id,
+                c.content,
+                c.is_deleted,
+                c.created_at,
+                c.updated_at,
+                c.deleted_at,
+                (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.comment_id) as like_count
+            FROM comments c
+            WHERE c.post_id = #{postId}
+              AND c.is_deleted = 'N'
+            ORDER BY like_count DESC, c.created_at ASC
+        ) 
+        WHERE ROWNUM = 1 AND like_count > 0
+    </select>
+
 </mapper>

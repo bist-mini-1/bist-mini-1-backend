@@ -37,4 +37,9 @@ public interface CommentDao {
      * 게시글별 전체 댓글 수 조회
      */
     int countByPostId(@Param("postId") Long postId);
+
+    /**
+     * 게시글별 베스트 댓글 조회 (좋아요 가장 많은 것)
+     */
+    Comment findBestCommentByPostId(@Param("postId") Long postId);
 }

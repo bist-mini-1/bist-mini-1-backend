@@ -48,27 +48,38 @@ public class CommentService {
         Post post = postQueryDao.findById(postId);
         Long postAuthorId = (post != null) ? post.getMemberId() : null;
 
-        List<CommentResponse> commentResponses = comments.stream().map(comment -> {
-            String nickname = "알 수 없는 사용자";
-            String profileImageUrl = null;
-            
-            Member author = memberDao.findById(comment.getMemberId());
-            if (author != null) {
-                nickname = author.getNickname();
-                // profileImageUrl = author.getProfileImageUrl();
-            }
+        // 베스트 댓글 조회 (1페이지일 때만 조회하거나 항상 조회)
+        Comment bestCommentEntity = commentDao.findBestCommentByPostId(postId);
+        CommentResponse bestComment = (bestCommentEntity != null) ? convertToResponse(bestCommentEntity, currentMemberId, postAuthorId) : null;
 
-            int likeCount = commentLikeDao.countByCommentId(comment.getCommentId());
-            boolean isLiked = currentMemberId != null && commentLikeDao.existsLike(comment.getCommentId(), currentMemberId) > 0;
+        List<CommentResponse> commentResponses = comments.stream()
+                .map(comment -> convertToResponse(comment, currentMemberId, postAuthorId))
+                .collect(Collectors.toList());
 
-            // 본인 여부 및 삭제 권한 계산
-            boolean isMine = currentMemberId != null && comment.getMemberId().equals(currentMemberId);
-            boolean canDelete = isMine || (currentMemberId != null && currentMemberId.equals(postAuthorId));
+        return CommentListResponse.of(commentResponses, totalCount, bestComment);
+    }
 
-            return CommentResponse.from(comment, nickname, profileImageUrl, likeCount, isLiked, isMine, canDelete);
-        }).collect(Collectors.toList());
+    /**
+     * Comment 엔티티를 CommentResponse DTO로 변환하는 내부 헬퍼 메서드
+     */
+    private CommentResponse convertToResponse(Comment comment, Long currentMemberId, Long postAuthorId) {
+        String nickname = "알 수 없는 사용자";
+        String profileImageUrl = null;
+        
+        Member author = memberDao.findById(comment.getMemberId());
+        if (author != null) {
+            nickname = author.getNickname();
+            // profileImageUrl = author.getProfileImageUrl();
+        }
 
-        return CommentListResponse.of(commentResponses, totalCount);
+        int likeCount = commentLikeDao.countByCommentId(comment.getCommentId());
+        boolean isLiked = currentMemberId != null && commentLikeDao.existsLike(comment.getCommentId(), currentMemberId) > 0;
+
+        // 본인 여부 및 삭제 권한 계산
+        boolean isMine = currentMemberId != null && comment.getMemberId().equals(currentMemberId);
+        boolean canDelete = isMine || (currentMemberId != null && currentMemberId.equals(postAuthorId));
+
+        return CommentResponse.from(comment, nickname, profileImageUrl, likeCount, isLiked, isMine, canDelete);
     }
 
     /**

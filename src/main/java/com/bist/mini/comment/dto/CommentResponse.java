@@ -45,7 +45,19 @@ public class CommentResponse {
     @Schema(description = "삭제일시")
     private LocalDateTime deletedAt;
 
-    public static CommentResponse from(Comment comment) {
+    @Schema(description = "작성자 닉네임")
+    private String nickname;
+
+    @Schema(description = "작성자 프로필 이미지")
+    private String profileImageUrl;
+
+    @Schema(description = "좋아요 수")
+    private int likeCount;
+
+    @Schema(description = "현재 사용자 좋아요 여부")
+    private boolean isLiked;
+
+    public static CommentResponse from(Comment comment, String nickname, String profileImageUrl, int likeCount, boolean isLiked) {
         if (comment == null) return null;
         return CommentResponse.builder()
                 .commentId(comment.getCommentId())
@@ -57,13 +69,11 @@ public class CommentResponse {
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
                 .deletedAt(comment.getDeletedAt())
+                .nickname(nickname)
+                .profileImageUrl(profileImageUrl)
+                .likeCount(likeCount)
+                .isLiked(isLiked)
                 .build();
     }
 
-    public static List<CommentResponse> fromList(List<Comment> comments) {
-        if (comments == null) return List.of();
-        return comments.stream()
-                .map(CommentResponse::from)
-                .collect(Collectors.toList());
-    }
 }

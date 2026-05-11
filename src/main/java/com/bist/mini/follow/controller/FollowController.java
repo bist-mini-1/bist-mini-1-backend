@@ -101,6 +101,22 @@ public class FollowController {
         return ApiResponse.success(followService.getFollowings(memberId, baseUrl));
     }
 
+    @Operation(summary = "내 팔로워 목록 조회", description = "로그인된 나의 팔로워 목록을 조회합니다.")
+    @GetMapping("/me/followers")
+    public ApiResponse<FollowListResponse> getMyFollowers(HttpServletRequest httpRequest) {
+        Long memberId = extractMemberId(httpRequest);
+        String baseUrl = extractBaseUrl(httpRequest);
+        return ApiResponse.success(followService.getFollowers(memberId, baseUrl));
+    }
+
+    @Operation(summary = "내 팔로잉 목록 조회", description = "로그인된 나의 팔로잉 목록을 조회합니다.")
+    @GetMapping("/me/followings")
+    public ApiResponse<FollowListResponse> getMyFollowings(HttpServletRequest httpRequest) {
+        Long memberId = extractMemberId(httpRequest);
+        String baseUrl = extractBaseUrl(httpRequest);
+        return ApiResponse.success(followService.getFollowings(memberId, baseUrl));
+    }
+
     // ── 팔로우한 사용자 게시글 조회 ──────────────────────────────────────────────
 
     @Operation(summary = "팔로우한 사용자 게시글 조회", description = "내가 팔로우한 사용자들의 게시글 목록을 최신순으로 조회합니다.")

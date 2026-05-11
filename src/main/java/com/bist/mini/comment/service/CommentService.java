@@ -1,15 +1,23 @@
 package com.bist.mini.comment.service;
 
 import com.bist.mini.comment.dao.CommentDao;
+import com.bist.mini.comment.dao.CommentLikeDao;
+import com.bist.mini.comment.dto.CommentResponse;
 import com.bist.mini.comment.dto.CommentUpdateRequest;
 import com.bist.mini.comment.entity.Comment;
+import com.bist.mini.comment.entity.CommentLike;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
+import com.bist.mini.member.dao.MemberDao;
+import com.bist.mini.member.entity.Member;
+import com.bist.mini.notification.entity.NotificationType;
+import com.bist.mini.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 댓글 서비스
@@ -20,12 +28,67 @@ import java.util.List;
 public class CommentService {
 
     private final CommentDao commentDao;
+    private final MemberDao memberDao;
+    private final CommentLikeDao commentLikeDao;
+    private final NotificationService notificationService;
 
     /**
      * 게시글별 댓글 목록 조회
      */
-    public List<Comment> getCommentsByPost(Long postId) {
-        return commentDao.findByPostId(postId);
+    public List<CommentResponse> getCommentsByPost(Long postId, Long currentMemberId, Long postAuthorId) {
+        List<Comment> comments = commentDao.findByPostId(postId);
+        
+        return comments.stream().map(comment -> {
+            String nickname = "알 수 없는 사용자";
+            String profileImageUrl = null;
+            
+            Member author = memberDao.findById(comment.getMemberId());
+            if (author != null) {
+                nickname = author.getNickname();
+                // profileImageUrl = author.getProfileImageUrl();
+            }
+
+            int likeCount = commentLikeDao.countByCommentId(comment.getCommentId());
+            boolean isLiked = currentMemberId != null && commentLikeDao.existsLike(comment.getCommentId(), currentMemberId) > 0;
+
+            return CommentResponse.from(comment, nickname, profileImageUrl, likeCount, isLiked);
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 댓글 좋아요 토글
+     */
+    @Transactional
+    public boolean toggleLike(Long commentId, Long memberId) {
+        Comment comment = getCommentDetail(commentId);
+        boolean exists = commentLikeDao.existsLike(commentId, memberId) > 0;
+        
+        if (exists) {
+            commentLikeDao.deleteLike(commentId, memberId);
+            return false; // 좋아요 취소
+        } else {
+            commentLikeDao.insertLike(CommentLike.builder()
+                    .commentId(commentId)
+                    .memberId(memberId)
+                    .build());
+            
+            // 본인 댓글이 아닌 경우에만 알림 발송
+            if (!comment.getMemberId().equals(memberId)) {
+                Member liker = memberDao.findById(memberId);
+                String likerNickname = (liker != null) ? liker.getNickname() : "누군가";
+                
+                notificationService.createNotification(
+                    comment.getMemberId(),
+                    memberId,
+                    comment.getPostId(),
+                    comment.getCommentId(),
+                    NotificationType.COMMENT_LIKE,
+                    likerNickname + "님이 회원님의 댓글에 좋아요를 눌렀습니다."
+                );
+            }
+            
+            return true; // 좋아요 추가
+        }
     }
 
     /**

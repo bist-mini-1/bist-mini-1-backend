@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.chat.dao.ChatMessageDao">
+
+    <resultMap id="chatMessageResultMap" type="com.bist.mini.chat.entity.ChatMessage">
+        <id property="messageId" column="message_id" />
+        <result property="roomId" column="room_id" />
+        <result property="senderId" column="sender_id" />
+        <result property="messageType" column="message_type" />
+        <result property="content" column="content" />
+        <result property="createdAt" column="created_at" />
+        <result property="senderNickname" column="sender_nickname" />
+    </resultMap>
+
+    <insert id="insertMessage" parameterType="com.bist.mini.chat.entity.ChatMessage" useGeneratedKeys="true" keyProperty="messageId" keyColumn="message_id">
+        INSERT INTO chat_messages (
+            room_id, sender_id, message_type, content, created_at
+        ) VALUES (
+            #{roomId}, #{senderId}, #{messageType}, #{content}, SYSDATE
+        )
+    </insert>
+
+    <select id="findMessagesByRoomId" resultMap="chatMessageResultMap">
+        SELECT cm.*, m.nickname as sender_nickname
+        FROM chat_messages cm
+        JOIN members m ON cm.sender_id = m.member_id
+        WHERE cm.room_id = #{roomId}
+        ORDER BY cm.created_at DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="findLastMessage" resultMap="chatMessageResultMap">
+        SELECT * FROM (
+            SELECT cm.*, m.nickname as sender_nickname
+            FROM chat_messages cm
+            JOIN members m ON cm.sender_id = m.member_id
+            WHERE cm.room_id = #{roomId}
+            ORDER BY cm.created_at DESC
+        ) WHERE ROWNUM = 1
+    </select>
+
+</mapper>

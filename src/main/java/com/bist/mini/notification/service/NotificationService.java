@@ -161,7 +161,7 @@ public class NotificationService {
         if (memberId == null) return null;
         
         final Long finalMemberId = Objects.requireNonNull(memberId);
-        SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+        SseEmitter emitter = new SseEmitter(Objects.requireNonNull(DEFAULT_TIMEOUT));
         emitters.put(finalMemberId, emitter);
         log.info("SSE: Emitter created for member {}. Current count: {}", finalMemberId, emitters.size());
 
@@ -233,7 +233,7 @@ public class NotificationService {
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event()
-                        .id(String.valueOf(finalMemberId))
+                        .id(Objects.requireNonNull(String.valueOf(finalMemberId)))
                         .name("notification")
                         .data(finalData)
                         .comment(finalComment));

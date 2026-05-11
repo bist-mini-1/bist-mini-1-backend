@@ -18,9 +18,16 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="notificationId" keyColumn="notification_id">
         INSERT INTO notifications (
-            receiver_id, sender_id, post_id, comment_id, type, message
+            receiver_id, sender_id, post_id, comment_id, type, message, is_read, created_at
         ) VALUES (
-            #{receiverId}, #{senderId, jdbcType=NUMERIC}, #{postId, jdbcType=NUMERIC}, #{commentId, jdbcType=NUMERIC}, #{type}, #{message}
+            #{receiverId}, 
+            #{senderId, jdbcType=NUMERIC}, 
+            #{postId, jdbcType=NUMERIC}, 
+            #{commentId, jdbcType=NUMERIC}, 
+            #{type}, 
+            #{message},
+            #{isRead},
+            #{createdAt}
         )
     </insert>
 
@@ -54,6 +61,16 @@
         WHERE receiver_id = #{receiverId}
           AND is_read = 'N'
     </update>
+
+    <delete id="delete">
+        DELETE FROM notifications
+        WHERE notification_id = #{notificationId}
+    </delete>
+
+    <delete id="deleteAll">
+        DELETE FROM notifications
+        WHERE receiver_id = #{receiverId}
+    </delete>
 
     <select id="countDuplicate" resultType="int">
         SELECT COUNT(*)

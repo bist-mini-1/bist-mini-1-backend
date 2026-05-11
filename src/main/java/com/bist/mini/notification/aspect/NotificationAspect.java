@@ -7,7 +7,6 @@ import com.bist.mini.post.dao.PostQueryDao;
 import com.bist.mini.post.entity.Post;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
@@ -26,13 +25,15 @@ public class NotificationAspect {
      * 댓글 생성 시점
      */
     @Pointcut("execution(* com.bist.mini.comment.service.CommentService.createComment(..))")
-    public void commentCreated() {}
+    public void commentCreated() {
+    }
 
     /**
      * 좋아요 토글 시점
      */
     @Pointcut("execution(* com.bist.mini.post.service.LikeService.toggleLike(..))")
-    public void likeToggled() {}
+    public void likeToggled() {
+    }
 
     /**
      * 댓글 생성 후 알림 처리
@@ -40,10 +41,12 @@ public class NotificationAspect {
     @AfterReturning(pointcut = "commentCreated()", returning = "comment")
     public void afterCommentCreated(Comment comment) {
         try {
-            if (comment == null) return;
+            if (comment == null)
+                return;
 
             Post post = postQueryDao.findById(comment.getPostId());
-            if (post == null) return;
+            if (post == null)
+                return;
 
             notificationService.createNotification(
                     post.getMemberId(), // receiver
@@ -51,8 +54,7 @@ public class NotificationAspect {
                     post.getPostId(),
                     comment.getCommentId(),
                     NotificationType.COMMENT,
-                    String.format("'%s' 게시글에 새로운 댓글이 달렸습니다.", post.getTitle())
-            );
+                    String.format("'%s' 게시글에 새로운 댓글이 달렸습니다.", post.getTitle()));
         } catch (Exception e) {
             log.error("Failed to create comment notification", e);
         }
@@ -64,10 +66,12 @@ public class NotificationAspect {
     @AfterReturning(pointcut = "likeToggled() && args(postId, memberId)", returning = "isLiked")
     public void afterLikeToggled(Long postId, Long memberId, boolean isLiked) {
         try {
-            if (!isLiked) return; // 좋아요 취소인 경우 알림 안함
+            if (!isLiked)
+                return; // 좋아요 취소인 경우 알림 안함
 
             Post post = postQueryDao.findById(postId);
-            if (post == null) return;
+            if (post == null)
+                return;
 
             notificationService.createNotification(
                     post.getMemberId(), // receiver
@@ -75,8 +79,7 @@ public class NotificationAspect {
                     postId,
                     null,
                     NotificationType.LIKE,
-                    String.format("'%s' 게시글을 좋아합니다.", post.getTitle())
-            );
+                    String.format("'%s' 게시글을 좋아합니다.", post.getTitle()));
         } catch (Exception e) {
             log.error("Failed to create like notification", e);
         }

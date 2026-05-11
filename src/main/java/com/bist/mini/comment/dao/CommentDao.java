@@ -2,6 +2,7 @@ package com.bist.mini.comment.dao;
 
 import com.bist.mini.comment.entity.Comment;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -11,7 +12,14 @@ import java.util.List;
 @Mapper
 public interface CommentDao {
 
-    List<Comment> findByPostId(Long postId);
+    /**
+     * 게시글별 댓글 목록 조회 (페이징 적용)
+     */
+    List<Comment> findByPostId(
+            @Param("postId") Long postId, 
+            @Param("offset") int offset, 
+            @Param("limit") int limit
+    );
 
     Comment findById(Long commentId);
 
@@ -25,4 +33,8 @@ public interface CommentDao {
 
     void deleteCommentAndChildren(Long commentId);
 
+    /**
+     * 게시글별 전체 댓글 수 조회
+     */
+    int countByPostId(@Param("postId") Long postId);
 }

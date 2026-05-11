@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -54,11 +52,19 @@ public class CommentResponse {
     @Schema(description = "좋아요 수")
     private int likeCount;
 
+    @Schema(description = "현재 사용자 본인 작성 여부")
+    private boolean isMine;
+
+    @Schema(description = "현재 사용자 삭제 권한 여부")
+    private boolean canDelete;
+
     @Schema(description = "현재 사용자 좋아요 여부")
     private boolean isLiked;
 
-    public static CommentResponse from(Comment comment, String nickname, String profileImageUrl, int likeCount, boolean isLiked) {
-        if (comment == null) return null;
+    public static CommentResponse from(Comment comment, String nickname, String profileImageUrl, int likeCount,
+            boolean isLiked, boolean isMine, boolean canDelete) {
+        if (comment == null)
+            return null;
         return CommentResponse.builder()
                 .commentId(comment.getCommentId())
                 .postId(comment.getPostId())
@@ -73,6 +79,8 @@ public class CommentResponse {
                 .profileImageUrl(profileImageUrl)
                 .likeCount(likeCount)
                 .isLiked(isLiked)
+                .isMine(isMine)
+                .canDelete(canDelete)
                 .build();
     }
 

@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -35,6 +36,7 @@ public class NotificationService {
      * 회원의 알림 목록 조회
      */
     public List<Notification> getNotifications(Long memberId) {
+        validateMember(memberId);
         return notificationDao.findByReceiverId(memberId);
     }
 
@@ -43,6 +45,11 @@ public class NotificationService {
      */
     @Transactional
     public void markAsRead(Long notificationId, Long memberId) {
+        validateMember(memberId);
+        if (notificationId == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
         Notification notification = notificationDao.findById(notificationId);
         if (notification == null) {
             throw new CustomException(ErrorCode.NOTIFICATION_NOT_FOUND);
@@ -54,10 +61,64 @@ public class NotificationService {
     }
 
     /**
+     * 모든 알림 읽음 처리
+     */
+    @Transactional
+    public void markAllAsRead(Long memberId) {
+        validateMember(memberId);
+        log.info("Marking all notifications as read for member: {}", memberId);
+        notificationDao.markAllAsRead(memberId);
+    }
+
+    /**
+     * 알림 삭제
+     */
+    @Transactional
+    public void deleteNotification(Long notificationId, Long memberId) {
+        validateMember(memberId);
+        if (notificationId == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Notification notification = notificationDao.findById(notificationId);
+        if (notification == null) {
+            throw new CustomException(ErrorCode.NOTIFICATION_NOT_FOUND);
+        }
+        if (!notification.getReceiverId().equals(memberId)) {
+            throw new CustomException(ErrorCode.NOTIFICATION_ACCESS_DENIED);
+        }
+        notificationDao.delete(notificationId);
+    }
+
+    /**
+     * 모든 알림 삭제
+     */
+    @Transactional
+    public void deleteAllNotifications(Long memberId) {
+        validateMember(memberId);
+        log.info("Deleting all notifications for member: {}", memberId);
+        notificationDao.deleteAll(memberId);
+    }
+
+    /**
+     * 회원 유효성 검사 (Internal)
+     */
+    private void validateMember(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+    }
+
+    /**
      * 알림 생성 (댓글, 좋아요, 팔로우 시 호출)
      */
     @Transactional
     public void createNotification(Long receiverId, Long senderId, Long postId, Long commentId, NotificationType type, String message) {
+        if (receiverId == null || type == null) {
+            log.warn("Notification creation failed: receiverId or type is null");
+            return;
+        }
+
         log.info("Creating notification: type={}, receiver={}, sender={}, message={}", type, receiverId, senderId, message);
         
         // 본인이 본인 글에 액션을 취한 경우 알림 제외
@@ -81,7 +142,9 @@ public class NotificationService {
                 .postId(postId)
                 .commentId(commentId)
                 .type(type)
-                .message(message)
+                .message(message != null ? message : "")
+                .isRead("N")
+                .createdAt(java.time.LocalDateTime.now())
                 .build();
 
         notificationDao.insert(notification);
@@ -95,22 +158,25 @@ public class NotificationService {
      * SSE 연결 생성
      */
     public SseEmitter subscribe(Long memberId) {
+        if (memberId == null) return null;
+        
+        final Long finalMemberId = Objects.requireNonNull(memberId);
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
-        emitters.put(memberId, emitter);
-        log.info("SSE: Emitter created for member {}. Current count: {}", memberId, emitters.size());
+        emitters.put(finalMemberId, emitter);
+        log.info("SSE: Emitter created for member {}. Current count: {}", finalMemberId, emitters.size());
 
         // 연결 종료/타임아웃 시 맵에서 삭제
         emitter.onCompletion(() -> {
-            log.info("SSE: Emitter completed for member {}", memberId);
-            emitters.remove(memberId);
+            log.info("SSE: Emitter completed for member {}", finalMemberId);
+            emitters.remove(finalMemberId);
         });
         emitter.onTimeout(() -> {
-            log.info("SSE: Emitter timeout for member {}", memberId);
-            emitters.remove(memberId);
+            log.info("SSE: Emitter timeout for member {}", finalMemberId);
+            emitters.remove(finalMemberId);
         });
         emitter.onError((e) -> {
-            log.error("SSE: Emitter error for member {}: {}", memberId, e.getMessage());
-            emitters.remove(memberId);
+            log.error("SSE: Emitter error for member {}: {}", finalMemberId, e.getMessage());
+            emitters.remove(finalMemberId);
         });
 
         // 503 에러 방지를 위한 더미 데이터 전송
@@ -118,56 +184,64 @@ public class NotificationService {
             emitter.send(SseEmitter.event()
                     .name("connect")
                     .data("connected!"));
-            log.info("SSE: Initial connect event sent to member {}", memberId);
+            log.info("SSE: Initial connect event sent to member {}", finalMemberId);
         } catch (IOException e) {
-            log.error("SSE: Failed to send initial connect event to member {}", memberId);
-            emitters.remove(memberId);
+            log.error("SSE: Failed to send initial connect event to member {}", finalMemberId);
+            emitters.remove(finalMemberId);
         }
 
         return emitter;
     }
 
     /**
-     * 클라이언트에게 데이터 전송
+     * 클라이언트에게 데이터 전송 (커스텀 이벤트)
      */
     public void send(Long memberId, Object data, String eventName) {
-        log.info("SSE: Sending event {} to member {}", eventName, memberId);
-        SseEmitter emitter = emitters.get(memberId);
+        if (memberId == null || data == null || eventName == null) return;
+
+        final Long finalMemberId = Objects.requireNonNull(memberId);
+        final String finalEventName = Objects.requireNonNull(eventName);
+        final Object finalData = Objects.requireNonNull(data);
+
+        log.info("SSE: Sending event {} to member {}", finalEventName, finalMemberId);
+        SseEmitter emitter = emitters.get(finalMemberId);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event()
-                        .name(eventName)
-                        .data(data));
-                log.info("SSE: Event {} sent to member {}", eventName, memberId);
+                        .name(finalEventName)
+                        .data(finalData));
+                log.info("SSE: Event {} sent to member {}", finalEventName, finalMemberId);
             } catch (IOException e) {
-                log.error("SSE: Failed to send event to member {}, removing emitter", memberId);
-                emitters.remove(memberId);
+                log.error("SSE: Failed to send event to member {}, removing emitter", finalMemberId);
+                emitters.remove(finalMemberId);
             }
-        } else {
-            log.info("SSE: No active emitter found for member {}", memberId);
         }
     }
 
     /**
-     * 클라이언트에게 데이터 전송
+     * 클라이언트에게 알림 전송 (기본 notification 이벤트)
      */
     private void sendToClient(Long memberId, Object data, String comment) {
-        log.info("SSE: Sending notification to member {}", memberId);
-        SseEmitter emitter = emitters.get(memberId);
+        if (memberId == null || data == null) return;
+
+        final Long finalMemberId = Objects.requireNonNull(memberId);
+        final Object finalData = Objects.requireNonNull(data);
+        final String finalComment = (comment != null) ? comment : "";
+
+        log.info("SSE: Sending notification to member {}", finalMemberId);
+        SseEmitter emitter = emitters.get(finalMemberId);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event()
-                        .id(String.valueOf(memberId))
+                        .id(String.valueOf(finalMemberId))
                         .name("notification")
-                        .data(data)
-                        .comment(comment));
-                log.info("SSE: Notification sent to member {}", memberId);
+                        .data(finalData)
+                        .comment(finalComment));
+                log.info("SSE: Notification sent to member {}", finalMemberId);
             } catch (IOException e) {
-                log.error("SSE: Failed to send notification to member {}, removing emitter", memberId);
-                emitters.remove(memberId);
+                log.error("SSE: Failed to send notification to member {}, removing emitter", finalMemberId);
+                emitters.remove(finalMemberId);
             }
-        } else {
-            log.info("SSE: No active emitter found for member {}", memberId);
         }
     }
 }

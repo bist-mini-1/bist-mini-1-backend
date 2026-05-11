@@ -1,5 +1,6 @@
 package com.bist.mini.post.dao;
 
+import com.bist.mini.post.dto.TagResponse;
 import com.bist.mini.post.entity.Tag;
 import com.bist.mini.post.dto.PostTag;
 import org.apache.ibatis.annotations.Mapper;
@@ -18,4 +19,6 @@ public interface TagDao {
     List<Tag> findTagsByPostId(@Param("postId") Long postId);
 
     List<PostTag> findTagsByPostIds(@Param("postIds") List<Long> postIds);
+
+    List<TagResponse> selectTagList();
 }

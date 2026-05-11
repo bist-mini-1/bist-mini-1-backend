@@ -11,6 +11,8 @@ import java.util.List;
 @Data
 public class JoinRequest {
 
+    private Long memberId;
+
     @NotBlank(message = "아이디를 입력해주세요.")
     @Pattern(
             regexp = "^[a-z0-9]{4,20}$",

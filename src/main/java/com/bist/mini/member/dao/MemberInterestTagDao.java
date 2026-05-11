@@ -13,9 +13,7 @@ public interface MemberInterestTagDao {
             @Param("tagIds") List<Long> tagIds
     );
 
-    List<Long> selectInterestTagIdsByMemberId(@Param("memberId") Long memberId);
-
     int countInterestTagsByMemberId(@Param("memberId") Long memberId);
 
-    void deleteByMemberId(@Param("memberId") Long memberId);
+    int countExistingTags(@Param("tagIds") List<Long> tagIds);
 }

@@ -2,6 +2,7 @@ package com.bist.mini.member.service;
 
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.member.dao.MemberDao;
+import com.bist.mini.member.dao.MemberInterestTagDao;
 import com.bist.mini.member.dto.JoinRequest;
 import com.bist.mini.member.dto.LoginRequest;
 import com.bist.mini.member.dto.LoginResponse;
@@ -9,12 +10,16 @@ import com.bist.mini.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
 
     private final MemberDao memberDao;
+    private final MemberInterestTagDao memberInterestTagDao;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
@@ -52,6 +57,7 @@ public class MemberService {
         return memberDao.countByNickname(nickname) > 0;
     }
 
+    @Transactional
     public String join(JoinRequest joinRequest) {
         if (memberDao.countByLoginId(joinRequest.getLoginId()) > 0) {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
@@ -69,6 +75,27 @@ public class MemberService {
         joinRequest.setPassword(encodedPassword);
 
         memberDao.insertMember(joinRequest);
+
+        if (joinRequest.getInterestTagIds() != null
+                && !joinRequest.getInterestTagIds().isEmpty()) {
+
+            List<Long> distinctTagIds = joinRequest.getInterestTagIds()
+                    .stream()
+                    .distinct()
+                    .toList();
+
+            int existingTagCount =
+                    memberInterestTagDao.countExistingTags(distinctTagIds);
+
+            if (existingTagCount != distinctTagIds.size()) {
+                throw new IllegalArgumentException("존재하지 않는 관심 태그가 포함되어 있습니다.");
+            }
+
+            memberInterestTagDao.insertMemberInterestTags(
+                    joinRequest.getMemberId(),
+                    distinctTagIds
+            );
+        }
 
         return "회원가입이 완료되었습니다.";
     }

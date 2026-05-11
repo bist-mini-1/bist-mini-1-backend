@@ -4,27 +4,19 @@
 <mapper namespace="com.bist.mini.member.dao.MemberInterestTagDao">
 
     <insert id="insertMemberInterestTags">
-        INSERT ALL
-        <foreach item="tagId" collection="tagIds">
-            INTO member_interest_tags (
-            member_id,
-            tag_id,
-            created_at
-            ) VALUES (
+        INSERT INTO member_interest_tags (
+        member_id,
+        tag_id,
+        created_at
+        )
+        <foreach item="tagId" collection="tagIds" separator="UNION ALL">
+            SELECT
             #{memberId},
             #{tagId},
             SYSDATE
-            )
+            FROM dual
         </foreach>
-        SELECT 1 FROM dual
     </insert>
-
-    <select id="selectInterestTagIdsByMemberId" resultType="long">
-        SELECT tag_id
-        FROM member_interest_tags
-        WHERE member_id = #{memberId}
-        ORDER BY created_at
-    </select>
 
     <select id="countInterestTagsByMemberId" resultType="int">
         SELECT COUNT(*)
@@ -32,9 +24,13 @@
         WHERE member_id = #{memberId}
     </select>
 
-    <delete id="deleteByMemberId">
-        DELETE FROM member_interest_tags
-        WHERE member_id = #{memberId}
-    </delete>
+    <select id="countExistingTags" resultType="int">
+        SELECT COUNT(*)
+        FROM tags
+        WHERE tag_id IN
+        <foreach item="tagId" collection="tagIds" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+    </select>
 
 </mapper>

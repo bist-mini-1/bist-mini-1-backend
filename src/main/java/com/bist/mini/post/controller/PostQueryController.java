@@ -31,8 +31,9 @@ public class PostQueryController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "latest") String sort,
             @LoginMember(required = false) Long memberId
     ) {
-        return postQueryService.getPostList(page, size, keyword, memberId);
+        return postQueryService.getPostList(page, size, keyword, sort, memberId);
     }
 }

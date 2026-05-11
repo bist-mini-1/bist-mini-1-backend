@@ -119,13 +119,26 @@
         )
         THEN 1
         ELSE 0
-        END AS is_bookmarked
+        END AS is_bookmarked,
+        CASE
+        WHEN #{memberId, jdbcType=NUMERIC} IS NOT NULL
+        THEN (
+        SELECT COUNT(DISTINCT pt.tag_id)
+        FROM post_tags pt
+        JOIN member_interest_tags mit
+        ON pt.tag_id = mit.tag_id
+        WHERE pt.post_id = p.post_id
+        AND mit.member_id = #{memberId, jdbcType=NUMERIC}
+        )
+        ELSE 0
+        END AS matched_tag_count
         FROM posts p
         JOIN members m
         ON p.member_id = m.member_id
         WHERE p.is_deleted = 'N'
         AND p.is_temp = 'N'
         AND p.is_public = 'Y'
+
         <if test="keyword != null">
             AND (
             LOWER(p.title) LIKE '%' || LOWER(#{keyword}) || '%'
@@ -141,7 +154,31 @@
             )
             )
         </if>
-        ORDER BY p.created_at DESC
+
+        <if test="sort == 'recommend'">
+            AND EXISTS (
+            SELECT 1
+            FROM post_tags pt
+            JOIN member_interest_tags mit
+            ON pt.tag_id = mit.tag_id
+            WHERE pt.post_id = p.post_id
+            AND mit.member_id = #{memberId, jdbcType=NUMERIC}
+            )
+        </if>
+
+        ORDER BY
+        <choose>
+            <when test="sort == 'popular'">
+                p.like_count DESC, p.created_at DESC
+            </when>
+            <when test="sort == 'recommend'">
+                matched_tag_count DESC, p.like_count DESC, p.created_at DESC
+            </when>
+            <otherwise>
+                p.created_at DESC
+            </otherwise>
+        </choose>
+
         OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
     </select>
 
@@ -153,6 +190,7 @@
         WHERE p.is_deleted = 'N'
         AND p.is_temp = 'N'
         AND p.is_public = 'Y'
+
         <if test="keyword != null">
             AND (
             LOWER(p.title) LIKE '%' || LOWER(#{keyword}) || '%'
@@ -166,6 +204,17 @@
             WHERE pt.post_id = p.post_id
             AND LOWER(t.name) LIKE '%' || LOWER(#{keyword}) || '%'
             )
+            )
+        </if>
+
+        <if test="sort == 'recommend'">
+            AND EXISTS (
+            SELECT 1
+            FROM post_tags pt
+            JOIN member_interest_tags mit
+            ON pt.tag_id = mit.tag_id
+            WHERE pt.post_id = p.post_id
+            AND mit.member_id = #{memberId, jdbcType=NUMERIC}
             )
         </if>
     </select>

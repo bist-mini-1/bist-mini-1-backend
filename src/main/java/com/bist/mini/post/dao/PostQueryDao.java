@@ -33,8 +33,13 @@ public interface PostQueryDao {
             @Param("offset") int offset,
             @Param("size") int size,
             @Param("keyword") String keyword,
+            @Param("sort") String sort,
             @Param("memberId") Long memberId
     );
 
-    long countPostList(@Param("keyword") String keyword);
+    long countPostList(
+            @Param("keyword") String keyword,
+            @Param("sort") String sort,
+            @Param("memberId") Long memberId
+    );
 }

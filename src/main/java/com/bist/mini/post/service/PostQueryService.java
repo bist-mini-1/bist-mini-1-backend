@@ -22,7 +22,7 @@ public class PostQueryService {
     /**
      * 전체 공개 게시글 목록을 페이징 처리하여 조회합니다.
      */
-    public PostPageResponse getPostList(int page, int size, String keyword, Long memberId) {
+    public PostPageResponse getPostList(int page, int size, String keyword, String sort, Long memberId) {
         int offset = (page - 1) * size;
 
         if (keyword != null) {
@@ -33,14 +33,28 @@ public class PostQueryService {
             }
         }
 
-        List<PostListResponse> posts = postQueryDao.selectPostList(offset, size, keyword, memberId);
+        if (sort == null || sort.isBlank()) {
+            sort = "latest";
+        }
+
+        if (!sort.equals("latest") && !sort.equals("popular") && !sort.equals("recommend")) {
+            sort = "latest";
+        }
+
+        if ("recommend".equals(sort) && memberId == null) {
+            sort = "latest";
+        }
+
+        List<PostListResponse> posts =
+                postQueryDao.selectPostList(offset, size, keyword, sort, memberId);
 
         if (!posts.isEmpty()) {
             List<Long> postIds = posts.stream()
                     .map(PostListResponse::getPostId)
                     .toList();
 
-            List<PostTagResponse> postTags = postQueryDao.selectTagNamesByPostIds(postIds);
+            List<PostTagResponse> postTags =
+                    postQueryDao.selectTagNamesByPostIds(postIds);
 
             Map<Long, List<String>> tagMap = postTags.stream()
                     .collect(Collectors.groupingBy(
@@ -53,7 +67,7 @@ public class PostQueryService {
             }
         }
 
-        long totalCount = postQueryDao.countPostList(keyword);
+        long totalCount = postQueryDao.countPostList(keyword, sort, memberId);
         int totalPages = (int) Math.ceil((double) totalCount / size);
 
         return PostPageResponse.builder()

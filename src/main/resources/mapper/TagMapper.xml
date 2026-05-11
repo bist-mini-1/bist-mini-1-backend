@@ -41,4 +41,21 @@
         ORDER BY pt.post_id, t.name
     </select>
 
+    <select id="selectTagList" resultType="com.bist.mini.post.dto.TagResponse">
+        SELECT
+        t.tag_id,
+        t.name,
+        COUNT(p.post_id) AS post_count
+        FROM tags t
+        LEFT JOIN post_tags pt
+        ON t.tag_id = pt.tag_id
+        LEFT JOIN posts p
+        ON pt.post_id = p.post_id
+        AND p.is_deleted = 'N'
+        AND p.is_temp = 'N'
+        AND p.is_public = 'Y'
+        GROUP BY t.tag_id, t.name
+        ORDER BY COUNT(p.post_id) DESC, t.name ASC
+    </select>
+
 </mapper>

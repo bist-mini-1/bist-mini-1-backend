@@ -65,11 +65,27 @@
         WHERE nickname = #{nickname}
     </select>
 
-    <insert id="insertMember" parameterType="com.bist.mini.member.dto.JoinRequestDto">
+    <insert id="insertMember"
+            parameterType="com.bist.mini.member.dto.JoinRequest"
+            useGeneratedKeys="true"
+            keyProperty="memberId"
+            keyColumn="member_id">
         INSERT INTO members (
-        login_id, password, email,nickname,bio, status, created_at
+        login_id,
+        password,
+        email,
+        nickname,
+        bio,
+        status,
+        created_at
         ) VALUES (
-        #{loginId}, #{password}, #{email}, #{nickname}, #{bio}, 'ACTIVE', SYSDATE
+        #{loginId},
+        #{password},
+        #{email},
+        #{nickname},
+        #{bio},
+        'ACTIVE',
+        SYSDATE
         )
     </insert>
 

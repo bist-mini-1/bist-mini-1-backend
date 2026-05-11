@@ -34,15 +34,25 @@ public class ChatController {
     public ApiResponse<ChatRoomResponse> getOrCreatePersonalRoom(
             @LoginMember Long memberId,
             @PathVariable("partnerId") Long partnerId) {
-        log.debug("1:1 채팅방 요청: memberId={}, partnerId={}", memberId, partnerId);
-        ChatRoom room = chatService.getOrCreatePersonalRoom(memberId, partnerId);
-        // 리스트용 변환 로직 재사용 (상대방 정보 포함을 위해)
-        List<ChatRoomResponse> rooms = chatService.getRoomList(memberId);
-        ChatRoomResponse response = rooms.stream()
-                .filter(r -> r.getRoomId().equals(room.getRoomId()))
-                .findFirst()
-                .orElse(null);
-        return ApiResponse.success(response);
+        log.info("1:1 채팅방 요청 시작: memberId={}, partnerId={}", memberId, partnerId);
+        try {
+            ChatRoom room = chatService.getOrCreatePersonalRoom(memberId, partnerId);
+            log.info("채팅방 생성/조회 완료: roomId={}", room.getRoomId());
+            
+            List<ChatRoomResponse> rooms = chatService.getRoomList(memberId);
+            ChatRoomResponse response = rooms.stream()
+                    .filter(r -> r.getRoomId().equals(room.getRoomId()))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (response == null) {
+                log.warn("생성된 채팅방을 목록에서 찾을 수 없음: roomId={}", room.getRoomId());
+            }
+            return ApiResponse.success(response);
+        } catch (Exception e) {
+            log.error("채팅방 생성 중 오류 발생: ", e);
+            throw e;
+        }
     }
 
     @Operation(summary = "채팅방 목록 조회", description = "로그인한 사용자가 참여 중인 채팅방 목록을 조회합니다.")

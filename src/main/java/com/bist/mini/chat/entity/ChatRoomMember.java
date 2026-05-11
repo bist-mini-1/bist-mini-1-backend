@@ -24,5 +24,5 @@ public class ChatRoomMember {
 
     // 조인을 위한 추가 필드
     private String nickname;
-    private String profileImage;
+    private byte[] profileImage;
 }

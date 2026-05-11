@@ -12,5 +12,5 @@ public class MemberProfile {
     private String email;
     private String nickname;
     private String bio;
-    private String profileImage; // DB 저장 경로 (예: /uploads/profile/uuid.jpg)
+    private byte[] profileImage; // DB 저장 경로 (예: /uploads/profile/uuid.jpg)
 }

@@ -12,7 +12,7 @@ public class Member {
     private String email;
     private String nickname;
     private String bio;
-    private byte[] profileImage;
+    private byte[] profileImage; // DB 저장된 이미지 바이너리 (BLOB)
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

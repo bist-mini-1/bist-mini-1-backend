@@ -42,7 +42,11 @@ public enum ErrorCode {
 
 
     // Auth
-    FORBIDDEN(HttpStatus.FORBIDDEN, "A001", "접근 권한이 없습니다.");
+    FORBIDDEN(HttpStatus.FORBIDDEN, "A001", "접근 권한이 없습니다."),
+
+    // Chat
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CH001", "해당 채팅방을 찾을 수 없습니다."),
+    CHAT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CH002", "해당 채팅방에 접근 권한이 없습니다.");
 
     private final HttpStatus status;
     private final String code;

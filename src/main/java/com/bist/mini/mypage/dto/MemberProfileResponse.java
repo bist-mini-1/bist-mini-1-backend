@@ -20,8 +20,8 @@ public class MemberProfileResponse {
 
     public static MemberProfileResponse from(MemberProfile profile, String baseUrl) {
         String profileImageUrl = null;
-        if (profile.getProfileImage() != null && !profile.getProfileImage().isEmpty()) {
-            profileImageUrl = baseUrl + profile.getProfileImage();
+        if (profile.getProfileImage() != null && profile.getProfileImage().length > 0) {
+            profileImageUrl = baseUrl + new String(profile.getProfileImage());
         }
         return MemberProfileResponse.builder()
                 .memberId(profile.getMemberId())

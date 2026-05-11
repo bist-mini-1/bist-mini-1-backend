@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.chat.dao.ChatRoomDao">
+
+    <resultMap id="chatRoomResultMap" type="com.bist.mini.chat.entity.ChatRoom">
+        <id property="roomId" column="room_id" />
+        <result property="roomName" column="room_name" />
+        <result property="roomType" column="room_type" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <resultMap id="chatRoomMemberResultMap" type="com.bist.mini.chat.entity.ChatRoomMember">
+        <id property="roomMemberId" column="room_member_id" />
+        <result property="roomId" column="room_id" />
+        <result property="memberId" column="member_id" />
+        <result property="joinedAt" column="joined_at" />
+        <result property="lastReadAt" column="last_read_at" />
+        <result property="nickname" column="nickname" />
+        <result property="profileImage" column="profile_image" />
+    </resultMap>
+
+    <insert id="insertRoom" parameterType="com.bist.mini.chat.entity.ChatRoom" useGeneratedKeys="true" keyProperty="roomId" keyColumn="room_id">
+        INSERT INTO chat_rooms (
+            room_name, room_type, created_at
+        ) VALUES (
+            #{roomName, jdbcType=VARCHAR}, #{roomType, jdbcType=VARCHAR}, SYSDATE
+        )
+    </insert>
+
+    <insert id="insertRoomMember" parameterType="com.bist.mini.chat.entity.ChatRoomMember">
+        INSERT INTO chat_room_members (
+            room_id, member_id, joined_at
+        ) VALUES (
+            #{roomId}, #{memberId}, SYSDATE
+        )
+    </insert>
+
+    <select id="findRoomById" resultMap="chatRoomResultMap">
+        SELECT * FROM chat_rooms WHERE room_id = #{roomId}
+    </select>
+
+    <select id="findRoomsByMemberId" resultMap="chatRoomResultMap">
+        SELECT r.*
+        FROM chat_rooms r
+        JOIN chat_room_members m ON r.room_id = m.room_id
+        WHERE m.member_id = #{memberId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="findMembersByRoomId" resultMap="chatRoomMemberResultMap">
+        SELECT crm.*, m.nickname, m.profile_image
+        FROM chat_room_members crm
+        JOIN members m ON crm.member_id = m.member_id
+        WHERE crm.room_id = #{roomId}
+    </select>
+
+    <select id="findPersonalRoom" resultType="java.lang.Long">
+        SELECT r.room_id
+        FROM (
+            SELECT room_id
+            FROM chat_room_members
+            WHERE member_id IN (#{memberId1}, #{memberId2})
+            GROUP BY room_id
+            HAVING COUNT(DISTINCT member_id) = 2
+        ) t
+        JOIN chat_rooms r ON t.room_id = r.room_id
+        WHERE r.room_type = 'PERSONAL'
+        AND ROWNUM = 1
+    </select>
+
+    <update id="updateLastReadAt">
+        UPDATE chat_room_members
+        SET last_read_at = SYSDATE
+        WHERE room_id = #{roomId}
+        AND member_id = #{memberId}
+    </update>
+
+</mapper>

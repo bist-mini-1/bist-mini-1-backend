@@ -9,6 +9,8 @@ import com.bist.mini.follow.dto.FollowUserResponse;
 import com.bist.mini.member.dao.MemberDao;
 import com.bist.mini.member.entity.Member;
 import com.bist.mini.mypage.dto.MyPostResponse;
+import com.bist.mini.notification.entity.NotificationType;
+import com.bist.mini.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class FollowService {
 
     private final FollowDao followDao;
     private final MemberDao memberDao;
+    private final NotificationService notificationService;
 
     // ── 팔로우 ─────────────────────────────────────────────────────────────────
 
@@ -47,6 +50,11 @@ public class FollowService {
         }
 
         followDao.insertFollow(followerId, followingId);
+
+        // 알림 생성
+        Member follower = memberDao.findById(followerId);
+        String message = follower.getNickname() + "님이 회원님을 팔로우했습니다.";
+        notificationService.createNotification(followingId, followerId, null, null, NotificationType.FOLLOW, message);
     }
 
     // ── 팔로우 취소 ────────────────────────────────────────────────────────────

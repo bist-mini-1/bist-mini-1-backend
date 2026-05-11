@@ -22,6 +22,7 @@ public class ChatMessageResponse {
     private LocalDateTime createdAt;
     private int unreadCount; // 안 읽은 인원 수 (1:1에서는 0 또는 1)
     private boolean isMine;
+    private boolean isDeleted;
 
     public static ChatMessageResponse from(ChatMessage message) {
         return from(message, 0, false);
@@ -42,6 +43,7 @@ public class ChatMessageResponse {
                 .createdAt(message.getCreatedAt())
                 .unreadCount(unreadCount)
                 .isMine(isMine)
+                .isDeleted("Y".equals(message.getIsDeleted()))
                 .build();
     }
 }

@@ -9,14 +9,15 @@
         <result property="messageType" column="message_type" />
         <result property="content" column="content" />
         <result property="createdAt" column="created_at" />
+        <result property="isDeleted" column="is_deleted" />
         <result property="senderNickname" column="sender_nickname" />
     </resultMap>
 
     <insert id="insertMessage" parameterType="com.bist.mini.chat.entity.ChatMessage" useGeneratedKeys="true" keyProperty="messageId" keyColumn="message_id">
         INSERT INTO chat_messages (
-            room_id, sender_id, message_type, content, created_at
+            room_id, sender_id, message_type, content, created_at, is_deleted
         ) VALUES (
-            #{roomId}, #{senderId}, #{messageType}, #{content}, SYSDATE
+            #{roomId}, #{senderId}, #{messageType}, #{content}, SYSDATE, 'N'
         )
     </insert>
 
@@ -43,6 +44,7 @@
         SELECT COUNT(*)
         FROM chat_messages
         WHERE room_id = #{roomId}
+        AND is_deleted = 'N'
         AND created_at > NVL(#{lastReadAt, jdbcType=TIMESTAMP}, TO_DATE('1900-01-01', 'YYYY-MM-DD'))
     </select>
 
@@ -59,9 +61,10 @@
         WHERE message_id = #{messageId}
     </update>
 
-    <delete id="deleteMessage">
-        DELETE FROM chat_messages
+    <update id="deleteMessage">
+        UPDATE chat_messages
+        SET is_deleted = 'Y'
         WHERE message_id = #{messageId}
-    </delete>
+    </update>
 
 </mapper>

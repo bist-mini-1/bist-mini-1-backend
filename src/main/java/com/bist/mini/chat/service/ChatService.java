@@ -254,11 +254,13 @@ public class ChatService {
 
         chatMessageDao.deleteMessage(messageId);
 
-        // 삭제 이벤트 전송 (실시간 반영용)
+        // 삭제 이벤트 전송 (실시간 반영용) - 소프트 삭제이므로 UPDATE 타입으로 보냄
         Map<String, Object> deleteEvent = new HashMap<>();
-        deleteEvent.put("messageType", "DELETE");
+        deleteEvent.put("messageType", "UPDATE");
         deleteEvent.put("messageId", messageId);
         deleteEvent.put("roomId", message.getRoomId());
+        deleteEvent.put("isDeleted", true);
+        deleteEvent.put("content", "삭제된 메시지입니다.");
         
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), deleteEvent);
     }

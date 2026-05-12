@@ -17,8 +17,8 @@ public class PostResponse {
     @Schema(description = "게시글 ID", example = "1")
     private Long postId;
 
-    @Schema(description = "작성자 회원 ID", example = "1")
-    private Long memberId;
+    @Schema(description = "작성자 닉네임", example = "bist_user")
+    private String nickname;
 
     @Schema(description = "게시글 제목", example = "게시글 제목입니다.")
     private String title;
@@ -56,10 +56,10 @@ public class PostResponse {
     @Schema(description = "북마크 여부")
     private Boolean isBookmarked;
 
-    public static PostResponse of(Post post, List<Tag> tags, Boolean isLiked, Boolean isBookmarked) {
+    public static PostResponse of(Post post, String nickname, List<Tag> tags, Boolean isLiked, Boolean isBookmarked) {
         return PostResponse.builder()
                 .postId(post.getPostId())
-                .memberId(post.getMemberId())
+                .nickname(nickname)
                 .title(post.getTitle())
                 .content(post.getContent())
                 .viewCount(post.getViewCount())

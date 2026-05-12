@@ -11,6 +11,8 @@ import com.bist.mini.post.dto.PostTag;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.entity.Tag;
 import com.bist.mini.attachment.service.AttachmentService;
+import com.bist.mini.member.dao.MemberDao;
+import com.bist.mini.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ public class PostService {
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
     private final AttachmentService attachmentService;
+    private final MemberDao memberDao;
 
     @Transactional
     public Post createPost(Post post, PostRequest postRequest) {
@@ -159,10 +162,11 @@ public class PostService {
             return null;
         }
         List<Tag> tags = tagDao.findTagsByPostId(post.getPostId());
+        String nickname = resolveNickname(post.getMemberId());
         boolean isLiked = likeService.isLiked(post.getPostId(), memberId);
         boolean isBookmarked = bookmarkService.isBookmarked(post.getPostId(), memberId);
 
-        return PostResponse.of(post, tags, isLiked, isBookmarked);
+        return PostResponse.of(post, nickname, tags, isLiked, isBookmarked);
     }
 
     public List<PostResponse> convertToResponses(List<Post> posts, Long memberId) {
@@ -181,11 +185,17 @@ public class PostService {
         return posts.stream()
                 .map(post -> {
                     List<Tag> tags = tagsByPostId.getOrDefault(post.getPostId(), new ArrayList<>());
+                    String nickname = resolveNickname(post.getMemberId());
                     boolean isLiked = likeService.isLiked(post.getPostId(), memberId);
                     boolean isBookmarked = bookmarkService.isBookmarked(post.getPostId(), memberId);
-                    return PostResponse.of(post, tags, isLiked, isBookmarked);
+                    return PostResponse.of(post, nickname, tags, isLiked, isBookmarked);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String resolveNickname(Long memberId) {
+        Member member = memberDao.findById(memberId);
+        return member != null ? member.getNickname() : null;
     }
 
     private void syncPostTags(Long postId, List<String> tags) {

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bist.mini.mypage.dao.MyPageDao">
 
-    <!-- 프로필 조회 -->
+    <!-- 프로필 조회 (BLOB은 로드하지 않고 존재 여부만 확인) -->
     <select id="selectProfileByMemberId" parameterType="long"
             resultType="com.bist.mini.mypage.entity.MemberProfile">
         SELECT
@@ -10,7 +10,20 @@
             login_id,
             email,
             nickname,
-            bio
+            bio,
+            CASE WHEN profile_image IS NOT NULL THEN 1 ELSE 0 END AS profile_image_exists
+        FROM members
+        WHERE member_id = #{memberId}
+          AND status = 'ACTIVE'
+    </select>
+
+    <!-- 프로필 이미지(BLOB) 조회 -->
+    <resultMap id="profileImageResultMap" type="com.bist.mini.mypage.entity.ProfileImage">
+        <result property="imageData" column="profile_image" jdbcType="BLOB"/>
+    </resultMap>
+
+    <select id="selectProfileImageByMemberId" parameterType="long" resultMap="profileImageResultMap">
+        SELECT profile_image
         FROM members
         WHERE member_id = #{memberId}
           AND status = 'ACTIVE'
@@ -51,10 +64,10 @@
           AND status = 'ACTIVE'
     </update>
 
-    <!-- 프로필 이미지 경로 수정 -->
+    <!-- 프로필 이미지(BLOB) 저장 -->
     <update id="updateProfileImage">
         UPDATE members
-        SET profile_image = #{profileImage},
+        SET profile_image = #{imageData, jdbcType=BLOB},
             updated_at    = SYSDATE
         WHERE member_id = #{memberId}
           AND status = 'ACTIVE'

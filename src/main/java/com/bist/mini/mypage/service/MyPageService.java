@@ -13,20 +13,18 @@ import com.bist.mini.mypage.dto.PasswordUpdateRequest;
 import com.bist.mini.mypage.dto.MyPostResponse;
 import com.bist.mini.mypage.dto.ProfileImageUpdateResponse;
 import com.bist.mini.mypage.entity.MemberProfile;
+import com.bist.mini.mypage.entity.ProfileImage;
 import com.bist.mini.post.dao.PostQueryDao;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,17 +35,6 @@ public class MyPageService {
     private final MemberInterestTagDao memberInterestTagDao;
     private final PostQueryDao postQueryDao;
     private final PasswordEncoder passwordEncoder;
-
-    private final Path profileUploadRoot = Paths.get("uploads", "profile").toAbsolutePath().normalize();
-
-    @PostConstruct
-    public void initUploadDir() {
-        try {
-            Files.createDirectories(profileUploadRoot);
-        } catch (IOException e) {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     // ── 프로필 조회 ──────────────────────────────────────────────────────────
 
@@ -121,45 +108,74 @@ public class MyPageService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
+        // contentType 화이트리스트 검증
+        switch (contentType) {
+            case "image/jpeg", "image/png", "image/gif", "image/webp" -> { /* 허용 */ }
+            default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         if (file.getSize() > 5L * 1024 * 1024) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        // 기존 프로필 이미지 파일 삭제 (BLOB 방식으로 변경됨에 따라 파일 삭제 로직은 주석 처리 또는 재검토 필요)
-        MemberProfile existing = myPageDao.selectProfileByMemberId(memberId);
-        if (existing != null && existing.getProfileImage() != null && existing.getProfileImage().length > 0) {
-            /* 
-            try {
-                // 기존에 String(경로)으로 저장되어 있던 경우에만 동작하던 로직
-                String oldFileName = Paths.get(new String(existing.getProfileImage())).getFileName().toString();
-                Files.deleteIfExists(profileUploadRoot.resolve(oldFileName));
-            } catch (Exception ignored) {
-            }
-            */
-        }
-
-        // 저장 파일명 생성 (contentType 기반 확장자 화이트리스트)
-        String extension = switch (contentType) {
-            case "image/jpeg" -> ".jpg";
-            case "image/png"  -> ".png";
-            case "image/gif"  -> ".gif";
-            case "image/webp" -> ".webp";
-            default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        };
-        String storedName = UUID.randomUUID() + extension;
-        Path target = profileUploadRoot.resolve(storedName);
-
+        byte[] imageData;
         try {
-            file.transferTo(target);
+            imageData = file.getBytes();
         } catch (IOException e) {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
-        // DB 저장 경로: 상대 URL
-        String relativeUrl = "/uploads/profile/" + storedName;
-        myPageDao.updateProfileImage(memberId, relativeUrl);
+        myPageDao.updateProfileImage(memberId, imageData);
 
-        return new ProfileImageUpdateResponse(baseUrl + relativeUrl);
+        String profileImageUrl = baseUrl + "/api/members/" + memberId + "/profile-image";
+        return new ProfileImageUpdateResponse(profileImageUrl);
+    }
+
+    // ── 프로필 이미지 조회 (BLOB → byte[]) ────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> getProfileImage(Long memberId) {
+        ProfileImage result = myPageDao.selectProfileImageByMemberId(memberId);
+        byte[] imageData = (result != null) ? result.getImageData() : null;
+        if (imageData == null || imageData.length == 0) {
+            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+        }
+
+        // magic bytes로 content-type 감지
+        MediaType mediaType = detectMediaType(imageData);
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(imageData);
+    }
+
+    private MediaType detectMediaType(byte[] bytes) {
+        if (bytes.length >= 3
+                && (bytes[0] & 0xFF) == 0xFF
+                && (bytes[1] & 0xFF) == 0xD8
+                && (bytes[2] & 0xFF) == 0xFF) {
+            return MediaType.IMAGE_JPEG;
+        }
+        if (bytes.length >= 4
+                && (bytes[0] & 0xFF) == 0x89
+                && bytes[1] == 'P'
+                && bytes[2] == 'N'
+                && bytes[3] == 'G') {
+            return MediaType.IMAGE_PNG;
+        }
+        if (bytes.length >= 3
+                && bytes[0] == 'G'
+                && bytes[1] == 'I'
+                && bytes[2] == 'F') {
+            return MediaType.IMAGE_GIF;
+        }
+        // WEBP: RIFF....WEBP
+        if (bytes.length >= 12
+                && bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F'
+                && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P') {
+            return MediaType.parseMediaType("image/webp");
+        }
+        return MediaType.APPLICATION_OCTET_STREAM;
     }
 
     // ── 내 게시글 목록 ─────────────────────────────────────────────────────────

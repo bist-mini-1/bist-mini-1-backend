@@ -16,8 +16,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -74,7 +76,7 @@ public class MyPageController {
     @Operation(summary = "유저 프로필 조회", description = "특정 회원의 공개 프로필 정보를 조회합니다.")
     @GetMapping("/{memberId}/profile")
     public ApiResponse<MemberProfileResponse> getUserProfile(
-            @org.springframework.web.bind.annotation.PathVariable Long memberId,
+            @PathVariable Long memberId,
             HttpServletRequest httpRequest
     ) {
         String baseUrl = extractBaseUrl(httpRequest);
@@ -86,7 +88,7 @@ public class MyPageController {
     @Operation(summary = "유저 게시글 목록 조회", description = "특정 회원이 작성한 공개 게시글 목록을 조회합니다.")
     @GetMapping("/{memberId}/posts")
     public ApiResponse<List<MyPostResponse>> getUserPosts(
-            @org.springframework.web.bind.annotation.PathVariable Long memberId
+            @PathVariable Long memberId
     ) {
         return ApiResponse.success(myPageService.getUserPosts(memberId));
     }
@@ -150,6 +152,16 @@ public class MyPageController {
         Long memberId = extractMemberId(httpRequest);
         String baseUrl = extractBaseUrl(httpRequest);
         return ApiResponse.success(myPageService.updateProfileImage(memberId, profileImage, baseUrl));
+    }
+
+    // ── 프로필 이미지 조회 ────────────────────────────────────────────────────
+
+    @Operation(summary = "프로필 이미지 조회", description = "특정 회원의 프로필 이미지(BLOB)를 반환합니다.")
+    @GetMapping("/{memberId}/profile-image")
+    public ResponseEntity<byte[]> getProfileImage(
+            @PathVariable Long memberId
+    ) {
+        return myPageService.getProfileImage(memberId);
     }
 
     // ── 관심 태그 조회 ────────────────────────────────────────────────────────

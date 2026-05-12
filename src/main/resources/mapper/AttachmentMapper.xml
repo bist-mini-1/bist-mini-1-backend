@@ -22,8 +22,8 @@
             post_id, original_name, file_size, file_type, extension, upload_type,
             file_data, download_count, is_deleted, created_at
         ) VALUES (
-            #{post_id}, #{original_name}, #{file_size}, #{file_type}, #{extension}, #{upload_type},
-            #{file_data, jdbcType=BLOB}, #{download_count}, #{is_deleted}, SYSDATE
+            #{post_id, jdbcType=NUMERIC}, #{original_name, jdbcType=VARCHAR}, #{file_size, jdbcType=NUMERIC}, #{file_type, jdbcType=VARCHAR}, #{extension, jdbcType=VARCHAR}, #{upload_type, jdbcType=VARCHAR},
+            #{file_data, jdbcType=BLOB}, #{download_count, jdbcType=NUMERIC}, #{is_deleted, jdbcType=VARCHAR}, SYSDATE
         )
     </insert>
 

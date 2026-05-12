@@ -9,6 +9,7 @@ build/
 *.jar
 *.war
 *.ear
+uploads/
 
 ### IntelliJ IDEA ###
 .idea/

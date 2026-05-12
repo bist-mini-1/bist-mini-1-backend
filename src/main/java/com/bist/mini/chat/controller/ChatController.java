@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 채팅 API 컨트롤러
@@ -86,7 +87,27 @@ public class ChatController {
         request.setSenderId(memberId);
         ChatMessage message = request.toEntity();
         ChatMessage sent = chatService.sendMessage(message);
-        return ApiResponse.success(chatService.convertToResponse(sent));
+        return ApiResponse.success(chatService.convertToResponse(sent, memberId));
+    }
+
+    @Operation(summary = "메시지 수정", description = "내가 보낸 메시지를 수정합니다.")
+    @PutMapping("/messages/{messageId}")
+    public ApiResponse<ChatMessageResponse> editMessage(
+            @LoginMember Long memberId,
+            @PathVariable("messageId") Long messageId,
+            @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        ChatMessage edited = chatService.editMessage(messageId, content, memberId);
+        return ApiResponse.success(chatService.convertToResponse(edited, memberId));
+    }
+
+    @Operation(summary = "메시지 삭제", description = "내가 보낸 메시지를 삭제합니다.")
+    @DeleteMapping("/messages/{messageId}")
+    public ApiResponse<Void> deleteMessage(
+            @LoginMember Long memberId,
+            @PathVariable("messageId") Long messageId) {
+        chatService.deleteMessage(messageId, memberId);
+        return ApiResponse.success(null);
     }
 
     @Operation(summary = "읽음 처리", description = "채팅방의 메시지를 모두 읽음 처리합니다.")

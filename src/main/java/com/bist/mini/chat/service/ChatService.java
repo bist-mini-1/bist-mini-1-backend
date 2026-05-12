@@ -181,7 +181,12 @@ public class ChatService {
         return ChatMessageResponse.from(message);
     }
 
-    public List<ChatMessageResponse> convertToResponses(List<ChatMessage> messages, Long memberId) {
+    public ChatMessageResponse convertToResponse(ChatMessage message, Long currentMemberId) {
+        boolean isMine = message.getSenderId() != null && message.getSenderId().equals(currentMemberId);
+        return ChatMessageResponse.from(message, 0, isMine);
+    }
+
+    public List<ChatMessageResponse> convertToResponses(List<ChatMessage> messages, Long currentMemberId) {
         if (messages.isEmpty()) return List.of();
         
         Long roomId = messages.get(0).getRoomId();
@@ -189,16 +194,75 @@ public class ChatService {
         
         return messages.stream().map(message -> {
             int unreadCount = 0;
-            for (ChatRoomMember m : members) {
-                if (m.getMemberId().equals(message.getSenderId())) continue;
-                
-                // 상대방이 마지막으로 읽은 시간보다 메시지 생성 시간이 뒤면 안 읽음
-                if (m.getLastReadAt() == null || m.getLastReadAt().isBefore(message.getCreatedAt())) {
-                    unreadCount++;
+            if (members != null) {
+                for (ChatRoomMember m : members) {
+                    if (m.getMemberId() != null && m.getMemberId().equals(message.getSenderId())) continue;
+                    
+                    // 상대방이 마지막으로 읽은 시간보다 메시지 생성 시간이 뒤면 안 읽음
+                    if (m.getLastReadAt() == null || (message.getCreatedAt() != null && m.getLastReadAt().isBefore(message.getCreatedAt()))) {
+                        unreadCount++;
+                    }
                 }
             }
-            return ChatMessageResponse.from(message, unreadCount);
+            boolean isMine = message.getSenderId() != null && message.getSenderId().equals(currentMemberId);
+            return ChatMessageResponse.from(message, unreadCount, isMine);
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 메시지 수정
+     */
+    @Transactional
+    public ChatMessage editMessage(Long messageId, String content, Long memberId) {
+        ChatMessage message = chatMessageDao.findMessageById(messageId);
+        if (message == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        if (!message.getSenderId().equals(memberId)) {
+            throw new CustomException(ErrorCode.CHAT_ACCESS_DENIED);
+        }
+
+        chatMessageDao.updateMessage(messageId, content);
+        message.setContent(content);
+
+        // 수정 이벤트 전송 (실시간 반영용)
+        Map<String, Object> editEvent = new HashMap<>();
+        editEvent.put("messageType", "UPDATE");
+        editEvent.put("messageId", messageId);
+        editEvent.put("roomId", message.getRoomId());
+        editEvent.put("content", content);
+        
+        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), editEvent);
+
+        return message;
+    }
+
+    /**
+     * 메시지 삭제
+     */
+    @Transactional
+    public void deleteMessage(Long messageId, Long memberId) {
+        ChatMessage message = chatMessageDao.findMessageById(messageId);
+        if (message == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        if (!message.getSenderId().equals(memberId)) {
+            throw new CustomException(ErrorCode.CHAT_ACCESS_DENIED);
+        }
+
+        chatMessageDao.deleteMessage(messageId);
+
+        // 삭제 이벤트 전송 (실시간 반영용) - 소프트 삭제이므로 UPDATE 타입으로 보냄
+        Map<String, Object> deleteEvent = new HashMap<>();
+        deleteEvent.put("messageType", "UPDATE");
+        deleteEvent.put("messageId", messageId);
+        deleteEvent.put("roomId", message.getRoomId());
+        deleteEvent.put("isDeleted", true);
+        deleteEvent.put("content", "삭제된 메시지입니다.");
+        
+        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), deleteEvent);
     }
 
     /**

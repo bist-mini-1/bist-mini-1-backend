@@ -24,4 +24,13 @@ public interface ChatMessageDao {
 
     // 안 읽은 메시지 수 조회
     int countUnreadMessages(@Param("roomId") Long roomId, @Param("lastReadAt") java.time.LocalDateTime lastReadAt);
+
+    // 메시지 상세 조회
+    ChatMessage findMessageById(Long messageId);
+
+    // 메시지 수정
+    void updateMessage(@Param("messageId") Long messageId, @Param("content") String content);
+
+    // 메시지 삭제
+    void deleteMessage(Long messageId);
 }

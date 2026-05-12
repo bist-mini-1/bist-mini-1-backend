@@ -24,10 +24,14 @@ public class CommentListResponse {
     @Schema(description = "전체 댓글 수", example = "15")
     private int totalCount;
 
-    public static CommentListResponse of(List<CommentResponse> comments, int totalCount) {
+    @Schema(description = "베스트 댓글 (좋아요 가장 많은 것)")
+    private CommentResponse bestComment;
+
+    public static CommentListResponse of(List<CommentResponse> comments, int totalCount, CommentResponse bestComment) {
         return CommentListResponse.builder()
                 .comments(comments)
                 .totalCount(totalCount)
+                .bestComment(bestComment)
                 .build();
     }
 }

@@ -22,6 +22,7 @@ public class ChatMessage {
     private ChatMessageType messageType; // TEXT, IMAGE, FILE
     private String content;
     private LocalDateTime createdAt;
+    private String isDeleted; // 'Y' or 'N'
 
     // 조인을 위한 추가 필드
     private String senderNickname;

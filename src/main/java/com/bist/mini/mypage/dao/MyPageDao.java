@@ -1,6 +1,7 @@
 package com.bist.mini.mypage.dao;
 
 import com.bist.mini.mypage.entity.MemberProfile;
+import com.bist.mini.mypage.entity.ProfileImage;
 import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -28,8 +29,11 @@ public interface MyPageDao {
     /** 자기소개 수정 */
     int updateBio(@Param("memberId") Long memberId, @Param("bio") String bio);
 
-    /** 프로필 이미지 경로 수정 */
-    int updateProfileImage(@Param("memberId") Long memberId, @Param("profileImage") String profileImage);
+    /** 프로필 이미지(BLOB) 저장 */
+    int updateProfileImage(@Param("memberId") Long memberId, @Param("imageData") byte[] imageData);
+
+    /** 프로필 이미지(BLOB) 조회 */
+    ProfileImage selectProfileImageByMemberId(@Param("memberId") Long memberId);
 
     /** 내가 북마크한 게시글 목록 조회 (최신 북마크 순) */
     List<Post> selectBookmarkedPosts(@Param("memberId") Long memberId);

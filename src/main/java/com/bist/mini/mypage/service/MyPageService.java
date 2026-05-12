@@ -3,8 +3,10 @@ package com.bist.mini.mypage.service;
 import com.bist.mini.common.exception.CustomException;
 import com.bist.mini.common.exception.ErrorCode;
 import com.bist.mini.member.dao.MemberDao;
+import com.bist.mini.member.dao.MemberInterestTagDao;
 import com.bist.mini.mypage.dao.MyPageDao;
 import com.bist.mini.mypage.dto.BioUpdateRequest;
+import com.bist.mini.mypage.dto.InterestTagUpdateRequest;
 import com.bist.mini.mypage.dto.MemberProfileResponse;
 import com.bist.mini.mypage.dto.NicknameUpdateRequest;
 import com.bist.mini.mypage.dto.PasswordUpdateRequest;
@@ -32,6 +34,7 @@ public class MyPageService {
 
     private final MyPageDao myPageDao;
     private final MemberDao memberDao;
+    private final MemberInterestTagDao memberInterestTagDao;
     private final PostQueryDao postQueryDao;
     private final PasswordEncoder passwordEncoder;
 
@@ -195,5 +198,35 @@ public class MyPageService {
         return myPageDao.selectBookmarkedPosts(memberId).stream()
                 .map(MyPostResponse::from)
                 .toList();
+    }
+
+    // ── 관심 태그 조회 ────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<Long> getInterestTags(Long memberId) {
+        return memberInterestTagDao.selectTagIdsByMemberId(memberId);
+    }
+
+    // ── 관심 태그 수정 ────────────────────────────────────────────────────────
+
+    @Transactional
+    public void updateInterestTags(Long memberId, InterestTagUpdateRequest request) {
+        // 기존 태그 전체 삭제
+        memberInterestTagDao.deleteByMemberId(memberId);
+
+        List<Long> tagIds = request.getTagIds();
+        if (tagIds == null || tagIds.isEmpty()) {
+            return;
+        }
+
+        List<Long> distinctTagIds = tagIds.stream().distinct().toList();
+
+        // 유효한 태그인지 검증
+        int existingCount = memberInterestTagDao.countExistingTags(distinctTagIds);
+        if (existingCount != distinctTagIds.size()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        memberInterestTagDao.insertMemberInterestTags(memberId, distinctTagIds);
     }
 }

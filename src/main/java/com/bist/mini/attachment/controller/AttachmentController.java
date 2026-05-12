@@ -38,10 +38,16 @@ public class AttachmentController {
     @GetMapping("/{attachmentId}/image")
     public ResponseEntity<byte[]> getImage(@PathVariable Long attachmentId) {
         Attachment attachment = attachmentService.getAttachment(attachmentId);
+        
+        String contentType = attachment.getFile_type();
+        if (contentType == null || contentType.isEmpty()) {
+            contentType = "application/octet-stream";
+        }
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(attachment.getFile_type()))
+                .contentType(MediaType.parseMediaType(contentType))
                 .contentLength(attachment.getFile_data().length)
+                .header(HttpHeaders.CACHE_CONTROL, "max-age=604800") // 1주일 캐싱
                 .body(attachment.getFile_data());
     }
 

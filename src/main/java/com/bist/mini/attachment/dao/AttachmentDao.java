@@ -20,4 +20,8 @@ public interface AttachmentDao {
     int softDeleteByIds(@Param("ids") List<Long> ids);
 
     Attachment selectAttachmentById(@Param("attachmentId") Long attachmentId);
+
+    int updateType(@Param("attachmentId") Long attachmentId, @Param("uploadType") String uploadType);
+
+    int resetThumbnailTypeByPostId(@Param("postId") Long postId);
 }

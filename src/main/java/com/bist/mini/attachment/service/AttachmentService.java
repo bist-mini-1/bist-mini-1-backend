@@ -84,7 +84,7 @@ public class AttachmentService {
     }
 
     @Transactional
-    public String syncPostAttachments(Long postId, List<String> tempAttachmentIdsRaw, List<String> tempInlineImageIdsRaw, String content) {
+    public String syncPostAttachments(Long postId, String thumbnailUrl, List<String> tempAttachmentIdsRaw, List<String> tempInlineImageIdsRaw, String content) {
         // 이제 content에서 attachment_id를 자동으로 파싱합니다.
         // 패턴: /api/attachments/{id}/image
         List<Long> attachmentIdsInContent = extractAttachmentIdsFromContent(content);
@@ -105,8 +105,33 @@ public class AttachmentService {
         if (!toDelete.isEmpty()) {
             attachmentDao.softDeleteByIds(toDelete);
         }
+
+        // 썸네일 설정 처리
+        if (thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
+            Long thumbnailId = extractIdFromUrl(thumbnailUrl);
+            if (thumbnailId != null) {
+                // 해당 포스트의 기존 썸네일들을 모두 IMAGE로 초기화
+                attachmentDao.resetThumbnailTypeByPostId(postId);
+                // 선택된 이미지를 THUMBNAIL로 설정
+                attachmentDao.updateType(thumbnailId, "THUMBNAIL");
+            }
+        }
         
         return content;
+    }
+    
+    private Long extractIdFromUrl(String url) {
+        if (url == null) return null;
+        Pattern pattern = Pattern.compile("/api/attachments/(\\d+)/image");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            try {
+                return Long.parseLong(matcher.group(1));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
     
     private List<Long> extractAttachmentIdsFromContent(String content) {

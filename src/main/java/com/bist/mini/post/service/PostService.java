@@ -34,6 +34,7 @@ public class PostService {
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
     private final AttachmentService attachmentService;
+    private final com.bist.mini.member.dao.MemberDao memberDao;
 
     @Transactional
     public Post createPost(Post post, PostRequest postRequest) {
@@ -41,7 +42,7 @@ public class PostService {
 
         postDao.insert(post);
         syncPostTags(post.getPostId(), postRequest.getTags());
-        String updatedContent = attachmentService.syncPostAttachments(post.getPostId(),
+        String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getThumbnail(),
                 postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), post.getContent());
         if (!updatedContent.equals(post.getContent())) {
             post.setContent(updatedContent);
@@ -109,7 +110,7 @@ public class PostService {
 
         postDao.softDeletePostTagsByPostId(post.getPostId());
         syncPostTags(post.getPostId(), postRequest.getTags());
-        String updatedContent = attachmentService.syncPostAttachments(post.getPostId(),
+        String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getThumbnail(),
                 postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), post.getContent());
         if (!updatedContent.equals(post.getContent())) {
             post.setContent(updatedContent);
@@ -162,7 +163,16 @@ public class PostService {
         boolean isLiked = likeService.isLiked(post.getPostId(), memberId);
         boolean isBookmarked = bookmarkService.isBookmarked(post.getPostId(), memberId);
 
-        return PostResponse.of(post, tags, isLiked, isBookmarked);
+        // 작성자 닉네임 조회
+        String nickname = null;
+        if (post.getMemberId() != null) {
+            com.bist.mini.member.entity.Member member = memberDao.findById(post.getMemberId());
+            if (member != null) {
+                nickname = member.getNickname();
+            }
+        }
+
+        return PostResponse.of(post, nickname, tags, isLiked, isBookmarked);
     }
 
     public List<PostResponse> convertToResponses(List<Post> posts, Long memberId) {
@@ -183,7 +193,17 @@ public class PostService {
                     List<Tag> tags = tagsByPostId.getOrDefault(post.getPostId(), new ArrayList<>());
                     boolean isLiked = likeService.isLiked(post.getPostId(), memberId);
                     boolean isBookmarked = bookmarkService.isBookmarked(post.getPostId(), memberId);
-                    return PostResponse.of(post, tags, isLiked, isBookmarked);
+                    
+                    // 작성자 닉네임 조회
+                    String nickname = null;
+                    if (post.getMemberId() != null) {
+                        com.bist.mini.member.entity.Member member = memberDao.findById(post.getMemberId());
+                        if (member != null) {
+                            nickname = member.getNickname();
+                        }
+                    }
+                    
+                    return PostResponse.of(post, nickname, tags, isLiked, isBookmarked);
                 })
                 .collect(Collectors.toList());
     }

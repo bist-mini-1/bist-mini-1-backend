@@ -70,21 +70,19 @@
     </update>
 
     <select id="selectAttachmentById" resultMap="AttachmentResultMap">
-        SELECT
-        attachment_id,
-        post_id,
-        original_name,
-        file_size,
-        file_type,
-        extension,
-        upload_type,
-        file_data,
-        download_count,
-        is_deleted,
-        created_at,
-        deleted_at
-        FROM attachments
-        WHERE attachment_id = #{attachmentId}
-        AND is_deleted = 'N'
+        SELECT * FROM attachments WHERE attachment_id = #{attachmentId} AND is_deleted = 'N'
     </select>
+
+    <update id="updateType">
+        UPDATE attachments
+        SET upload_type = #{uploadType}
+        WHERE attachment_id = #{attachmentId}
+    </update>
+
+    <update id="resetThumbnailTypeByPostId">
+        UPDATE attachments
+        SET upload_type = 'IMAGE'
+        WHERE post_id = #{postId}
+          AND upload_type = 'THUMBNAIL'
+    </update>
 </mapper>

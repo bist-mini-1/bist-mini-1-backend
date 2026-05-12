@@ -110,7 +110,8 @@ public class MyPageService {
 
         // contentType 화이트리스트 검증
         switch (contentType) {
-            case "image/jpeg", "image/png", "image/gif", "image/webp" -> { /* 허용 */ }
+            case "image/jpeg", "image/png", "image/gif", "image/webp" -> {
+                /* 허용 */ }
             default -> throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 

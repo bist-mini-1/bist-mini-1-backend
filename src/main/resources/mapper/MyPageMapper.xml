@@ -19,7 +19,7 @@
 
     <!-- 프로필 이미지(BLOB) 조회 -->
     <resultMap id="profileImageResultMap" type="com.bist.mini.mypage.entity.ProfileImage">
-        <result property="imageData" column="profile_image" jdbcType="BLOB"/>
+        <result property="imageData" column="profile_image" jdbcType="BLOB" typeHandler="org.apache.ibatis.type.BlobTypeHandler"/>
     </resultMap>
 
     <select id="selectProfileImageByMemberId" parameterType="long" resultMap="profileImageResultMap">
@@ -67,7 +67,7 @@
     <!-- 프로필 이미지(BLOB) 저장 -->
     <update id="updateProfileImage">
         UPDATE members
-        SET profile_image = #{imageData, jdbcType=BLOB},
+        SET profile_image = #{imageData, jdbcType=BLOB, typeHandler=org.apache.ibatis.type.BlobTypeHandler},
             updated_at    = SYSDATE
         WHERE member_id = #{memberId}
           AND status = 'ACTIVE'

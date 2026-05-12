@@ -1,6 +1,7 @@
 package com.bist.mini.mypage.controller;
 
 import com.bist.mini.common.ApiResponse;
+import com.bist.mini.common.annotation.LoginMember;
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.mypage.dto.BioUpdateRequest;
 import com.bist.mini.mypage.dto.InterestTagUpdateRequest;
@@ -155,6 +156,14 @@ public class MyPageController {
     }
 
     // ── 프로필 이미지 조회 ────────────────────────────────────────────────────
+
+    @Operation(summary = "내 프로필 이미지 조회", description = "로그인된 회원의 프로필 이미지(BLOB)를 반환합니다.")
+    @GetMapping("/me/profile-image")
+    public ResponseEntity<byte[]> getMyProfileImage(
+            @LoginMember Long memberId
+    ) {
+        return myPageService.getProfileImage(memberId);
+    }
 
     @Operation(summary = "프로필 이미지 조회", description = "특정 회원의 프로필 이미지(BLOB)를 반환합니다.")
     @GetMapping("/{memberId}/profile-image")

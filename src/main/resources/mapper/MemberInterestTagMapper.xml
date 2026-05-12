@@ -33,4 +33,16 @@
         </foreach>
     </select>
 
+    <select id="selectTagIdsByMemberId" resultType="long">
+        SELECT tag_id
+        FROM member_interest_tags
+        WHERE member_id = #{memberId}
+        ORDER BY tag_id
+    </select>
+
+    <delete id="deleteByMemberId">
+        DELETE FROM member_interest_tags
+        WHERE member_id = #{memberId}
+    </delete>
+
 </mapper>

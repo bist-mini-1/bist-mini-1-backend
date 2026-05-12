@@ -3,6 +3,7 @@ package com.bist.mini.mypage.controller;
 import com.bist.mini.common.ApiResponse;
 import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.mypage.dto.BioUpdateRequest;
+import com.bist.mini.mypage.dto.InterestTagUpdateRequest;
 import com.bist.mini.mypage.dto.MemberProfileResponse;
 import com.bist.mini.mypage.dto.NicknameUpdateRequest;
 import com.bist.mini.mypage.dto.PasswordUpdateRequest;
@@ -149,5 +150,27 @@ public class MyPageController {
         Long memberId = extractMemberId(httpRequest);
         String baseUrl = extractBaseUrl(httpRequest);
         return ApiResponse.success(myPageService.updateProfileImage(memberId, profileImage, baseUrl));
+    }
+
+    // ── 관심 태그 조회 ────────────────────────────────────────────────────────
+
+    @Operation(summary = "내 관심 태그 조회", description = "로그인된 회원의 관심 태그 ID 목록을 조회합니다.")
+    @GetMapping("/me/interest-tags")
+    public ApiResponse<List<Long>> getInterestTags(HttpServletRequest httpRequest) {
+        Long memberId = extractMemberId(httpRequest);
+        return ApiResponse.success(myPageService.getInterestTags(memberId));
+    }
+
+    // ── 관심 태그 수정 ────────────────────────────────────────────────────────
+
+    @Operation(summary = "내 관심 태그 수정", description = "로그인된 회원의 관심 태그를 수정합니다. (기존 태그 전체 교체)")
+    @PatchMapping("/me/interest-tags")
+    public ApiResponse<Void> updateInterestTags(
+            HttpServletRequest httpRequest,
+            @RequestBody InterestTagUpdateRequest request
+    ) {
+        Long memberId = extractMemberId(httpRequest);
+        myPageService.updateInterestTags(memberId, request);
+        return ApiResponse.success();
     }
 }

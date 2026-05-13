@@ -63,13 +63,15 @@ public class CommentService {
      * Comment 엔티티를 CommentResponse DTO로 변환하는 내부 헬퍼 메서드
      */
     private CommentResponse convertToResponse(Comment comment, Long currentMemberId, Long postAuthorId) {
-        String nickname = "알 수 없는 사용자";
-        String profileImageUrl = null;
+        String nickname = comment.getNickname() != null ? comment.getNickname() : "알 수 없는 사용자";
+        String profileImageUrl = comment.getProfileImageUrl();
         
-        Member author = memberDao.findById(comment.getMemberId());
-        if (author != null) {
-            nickname = author.getNickname();
-            // profileImageUrl = author.getProfileImageUrl();
+        // 만약 JOIN으로 nickname을 못 가져온 경우(예: findById 단일 조회 등)에만 폴백으로 조회
+        if (comment.getNickname() == null) {
+            Member author = memberDao.findById(comment.getMemberId());
+            if (author != null) {
+                nickname = author.getNickname();
+            }
         }
 
         int likeCount = commentLikeDao.countByCommentId(comment.getCommentId());

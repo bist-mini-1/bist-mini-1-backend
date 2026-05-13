@@ -43,8 +43,10 @@ public class ChatSocketController {
 
         // 2. 메시지 저장 및 가공
         ChatMessage savedMessage = chatService.sendMessage(message);
-        // 새 메시지는 일단 안 읽음 상태(1)로 전송
-        ChatMessageResponse response = ChatMessageResponse.from(savedMessage, 1);
+        
+        // 실시간 전송 시 프로필 정보 등을 포함한 DTO로 변환
+        // (isMine은 프론트엔드에서 senderId 기반으로 다시 판단하므로 임의로 false 처리해도 무관)
+        ChatMessageResponse response = chatService.convertToResponse(savedMessage, -1L);
 
         // 3. 해당 채팅방 구독자들에게 메시지 전송 (/sub/chat/room/{roomId})
         messagingTemplate.convertAndSend("/sub/chat/room/" + response.getRoomId(), response);

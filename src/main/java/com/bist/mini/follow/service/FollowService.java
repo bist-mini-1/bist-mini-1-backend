@@ -86,13 +86,7 @@ public class FollowService {
 
     @Transactional(readOnly = true)
     public FollowListResponse getFollowers(Long memberId, String baseUrl) {
-        List<FollowUserResponse> users = followDao.selectFollowers(memberId).stream()
-                .map(u -> FollowUserResponse.builder()
-                        .memberId(u.getMemberId())
-                        .nickname(u.getNickname())
-                        .profileImage(buildProfileImageUrl(u.getProfileImage(), baseUrl))
-                        .build())
-                .collect(Collectors.toList());
+        List<FollowUserResponse> users = followDao.selectFollowers(memberId);
         return FollowListResponse.builder()
                 .count(users.size())
                 .users(users)
@@ -103,13 +97,7 @@ public class FollowService {
 
     @Transactional(readOnly = true)
     public FollowListResponse getFollowings(Long memberId, String baseUrl) {
-        List<FollowUserResponse> users = followDao.selectFollowings(memberId).stream()
-                .map(u -> FollowUserResponse.builder()
-                        .memberId(u.getMemberId())
-                        .nickname(u.getNickname())
-                        .profileImage(buildProfileImageUrl(u.getProfileImage(), baseUrl))
-                        .build())
-                .collect(Collectors.toList());
+        List<FollowUserResponse> users = followDao.selectFollowings(memberId);
         return FollowListResponse.builder()
                 .count(users.size())
                 .users(users)

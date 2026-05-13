@@ -98,7 +98,7 @@ public class ChatService {
                     for (ChatRoomMember m : members) {
                         if (m.getMemberId() != null && !m.getMemberId().equals(memberId)) {
                             partnerNickname = m.getNickname();
-                            // profileImage (byte[])는 필요시 Base64 등으로 변환하여 처리 가능
+                            partnerProfileImage = m.getProfileImageUrl();
                             break;
                         }
                     }
@@ -183,7 +183,22 @@ public class ChatService {
 
     public ChatMessageResponse convertToResponse(ChatMessage message, Long currentMemberId) {
         boolean isMine = message.getSenderId() != null && message.getSenderId().equals(currentMemberId);
-        return ChatMessageResponse.from(message, 0, isMine);
+        String senderNickname = message.getSenderNickname();
+        String senderProfileImage = null;
+        
+        // 메시지 보낸 사람의 정보를 가져오기 위해 멤버 조회
+        List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(message.getRoomId());
+        if (members != null) {
+            for (ChatRoomMember m : members) {
+                if (m.getMemberId().equals(message.getSenderId())) {
+                    if (senderNickname == null) senderNickname = m.getNickname();
+                    senderProfileImage = m.getProfileImageUrl();
+                    break;
+                }
+            }
+        }
+        
+        return ChatMessageResponse.from(message, 0, isMine, senderNickname, senderProfileImage);
     }
 
     public List<ChatMessageResponse> convertToResponses(List<ChatMessage> messages, Long currentMemberId) {
@@ -205,7 +220,18 @@ public class ChatService {
                 }
             }
             boolean isMine = message.getSenderId() != null && message.getSenderId().equals(currentMemberId);
-            return ChatMessageResponse.from(message, unreadCount, isMine);
+            String senderNickname = message.getSenderNickname();
+            String senderProfileImage = null;
+            if (members != null) {
+                for (ChatRoomMember m : members) {
+                    if (m.getMemberId().equals(message.getSenderId())) {
+                        if (senderNickname == null) senderNickname = m.getNickname();
+                        senderProfileImage = m.getProfileImageUrl();
+                        break;
+                    }
+                }
+            }
+            return ChatMessageResponse.from(message, unreadCount, isMine, senderNickname, senderProfileImage);
         }).collect(Collectors.toList());
     }
 

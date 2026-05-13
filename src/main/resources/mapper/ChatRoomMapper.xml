@@ -16,7 +16,7 @@
         <result property="joinedAt" column="joined_at" />
         <result property="lastReadAt" column="last_read_at" />
         <result property="nickname" column="nickname" />
-        <result property="profileImage" column="profile_image" />
+        <result property="profileImageUrl" column="profile_image_url" />
     </resultMap>
 
     <insert id="insertRoom" parameterType="com.bist.mini.chat.entity.ChatRoom">
@@ -51,7 +51,8 @@
     </select>
 
     <select id="findMembersByRoomId" resultMap="chatRoomMemberResultMap">
-        SELECT crm.*, m.nickname, m.profile_image
+        SELECT crm.*, m.nickname,
+               CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END AS profile_image_url
         FROM chat_room_members crm
         JOIN members m ON crm.member_id = m.member_id
         WHERE crm.room_id = #{roomId}

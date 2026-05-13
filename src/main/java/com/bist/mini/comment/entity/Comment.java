@@ -48,6 +48,12 @@ public class Comment {
     @Schema(description = "삭제일", example = "null")
     private LocalDateTime deletedAt;
 
+    // JOIN을 통해 채워질 필드 (DB 테이블에는 없음)
+    private String nickname;
+
+    /** 프로필 이미지 URL (전달용) */
+    private String profileImageUrl;
+
     /**
      * 삭제 여부 확인
      */

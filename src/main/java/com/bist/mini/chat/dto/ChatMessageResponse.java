@@ -17,6 +17,7 @@ public class ChatMessageResponse {
     private Long roomId;
     private Long senderId;
     private String senderNickname;
+    private String senderProfileImage;
     private ChatMessageType messageType;
     private String content;
     private LocalDateTime createdAt;
@@ -25,19 +26,28 @@ public class ChatMessageResponse {
     private boolean isDeleted;
 
     public static ChatMessageResponse from(ChatMessage message) {
-        return from(message, 0, false);
+        return from(message, 0, false, null);
     }
 
     public static ChatMessageResponse from(ChatMessage message, int unreadCount) {
-        return from(message, unreadCount, false);
+        return from(message, unreadCount, false, null);
     }
 
     public static ChatMessageResponse from(ChatMessage message, int unreadCount, boolean isMine) {
+        return from(message, unreadCount, isMine, null);
+    }
+
+    public static ChatMessageResponse from(ChatMessage message, int unreadCount, boolean isMine, String senderProfileImage) {
+        return from(message, unreadCount, isMine, message.getSenderNickname(), senderProfileImage);
+    }
+
+    public static ChatMessageResponse from(ChatMessage message, int unreadCount, boolean isMine, String senderNickname, String senderProfileImage) {
         return ChatMessageResponse.builder()
                 .messageId(message.getMessageId())
                 .roomId(message.getRoomId())
                 .senderId(message.getSenderId())
-                .senderNickname(message.getSenderNickname())
+                .senderNickname(senderNickname != null ? senderNickname : message.getSenderNickname())
+                .senderProfileImage(senderProfileImage)
                 .messageType(message.getMessageType())
                 .content(message.getContent())
                 .createdAt(message.getCreatedAt())

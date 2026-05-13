@@ -42,4 +42,10 @@ public interface PostQueryDao {
             @Param("sort") String sort,
             @Param("memberId") Long memberId
     );
+
+    List<PostListResponse> selectRecommendedPostsByTags(
+            @Param("postId") Long postId,
+            @Param("limit") int limit,
+            @Param("memberId") Long memberId
+    );
 }

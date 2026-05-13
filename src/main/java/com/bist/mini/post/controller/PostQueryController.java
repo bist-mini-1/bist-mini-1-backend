@@ -1,17 +1,18 @@
 package com.bist.mini.post.controller;
 
 import com.bist.mini.common.annotation.LoginMember;
+import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.service.PostQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 게시글 조회 전용 컨트롤러
@@ -35,5 +36,15 @@ public class PostQueryController {
             @LoginMember(required = false) Long memberId
     ) {
         return postQueryService.getPostList(page, size, keyword, sort, memberId);
+    }
+
+    @Operation(summary = "추천 게시글 조회", description = "현재 게시글과 같은 태그를 가진 게시글을 추천합니다.")
+    @GetMapping("/{postId}/recommended")
+    public List<PostListResponse> getRecommendedPosts(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "4") int limit,
+            @LoginMember(required = false) Long memberId
+    ) {
+        return postQueryService.getRecommendedPosts(postId, limit, memberId);
     }
 }

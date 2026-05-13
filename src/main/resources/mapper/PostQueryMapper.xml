@@ -233,4 +233,75 @@
         ORDER BY pt.post_id, t.name
     </select>
 
+    <select id="selectRecommendedPostsByTags" resultType="com.bist.mini.post.dto.PostListResponse">
+        SELECT
+        p.post_id,
+        p.member_id,
+        m.nickname,
+        p.title,
+        DBMS_LOB.SUBSTR(p.content, 100, 1) AS content_preview,
+        p.view_count,
+        p.like_count,
+        p.comment_count,
+        p.created_at,
+        (
+        SELECT '/api/attachments/' || a.attachment_id || '/image'
+        FROM attachments a
+        WHERE a.post_id = p.post_id
+        AND a.upload_type = 'THUMBNAIL'
+        AND a.is_deleted = 'N'
+        AND ROWNUM = 1
+        ) AS thumbnail_url,
+        CASE
+        WHEN #{memberId, jdbcType=NUMERIC} IS NOT NULL
+        AND EXISTS (
+        SELECT 1
+        FROM post_likes pl
+        WHERE pl.post_id = p.post_id
+        AND pl.member_id = #{memberId, jdbcType=NUMERIC}
+        )
+        THEN 1
+        ELSE 0
+        END AS is_liked,
+        CASE
+        WHEN #{memberId, jdbcType=NUMERIC} IS NOT NULL
+        AND EXISTS (
+        SELECT 1
+        FROM bookmarks b
+        WHERE b.post_id = p.post_id
+        AND b.member_id = #{memberId, jdbcType=NUMERIC}
+        )
+        THEN 1
+        ELSE 0
+        END AS is_bookmarked,
+        COUNT(DISTINCT pt2.tag_id) AS matched_tag_count
+        FROM posts p
+        JOIN members m
+        ON p.member_id = m.member_id
+        JOIN post_tags pt2
+        ON p.post_id = pt2.post_id
+        JOIN post_tags pt1
+        ON pt1.tag_id = pt2.tag_id
+        WHERE pt1.post_id = #{postId}
+        AND p.post_id != #{postId}
+        AND p.is_deleted = 'N'
+        AND p.is_temp = 'N'
+        AND p.is_public = 'Y'
+        GROUP BY
+        p.post_id,
+        p.member_id,
+        m.nickname,
+        p.title,
+        DBMS_LOB.SUBSTR(p.content, 100, 1),
+        p.view_count,
+        p.like_count,
+        p.comment_count,
+        p.created_at
+        ORDER BY
+        matched_tag_count DESC,
+        p.like_count DESC,
+        p.created_at DESC
+        FETCH FIRST #{limit} ROWS ONLY
+    </select>
+
 </mapper>

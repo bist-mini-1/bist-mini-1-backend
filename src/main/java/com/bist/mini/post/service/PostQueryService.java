@@ -3,6 +3,7 @@ package com.bist.mini.post.service;
 import com.bist.mini.post.dao.PostQueryDao;
 import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostPageResponse;
+import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.dto.PostTagResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -77,5 +78,33 @@ public class PostQueryService {
                 .totalCount(totalCount)
                 .totalPages(totalPages)
                 .build();
+    }
+
+    public List<PostListResponse> getRecommendedPosts(Long postId, int limit, Long memberId) {
+        int safeLimit = Math.min(Math.max(limit, 1), 10);
+
+        List<PostListResponse> posts =
+                postQueryDao.selectRecommendedPostsByTags(postId, safeLimit, memberId);
+
+        if (!posts.isEmpty()) {
+            List<Long> postIds = posts.stream()
+                    .map(PostListResponse::getPostId)
+                    .toList();
+
+            List<PostTagResponse> postTags =
+                    postQueryDao.selectTagNamesByPostIds(postIds);
+
+            Map<Long, List<String>> tagMap = postTags.stream()
+                    .collect(Collectors.groupingBy(
+                            PostTagResponse::getPostId,
+                            Collectors.mapping(PostTagResponse::getTagName, Collectors.toList())
+                    ));
+
+            for (PostListResponse post : posts) {
+                post.setTags(tagMap.getOrDefault(post.getPostId(), List.of()));
+            }
+        }
+
+        return posts;
     }
 }

@@ -8,12 +8,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Tag(name = "Attachment", description = "첨부파일 관리 API")
@@ -57,7 +59,11 @@ public class AttachmentController {
         Attachment attachment = attachmentService.getAttachment(id);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(attachment.getFile_type() != null ? attachment.getFile_type() : "application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + attachment.getOriginal_name() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(attachment.getOriginal_name(), StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
                 .body(attachment.getFile_data());
     }
 }

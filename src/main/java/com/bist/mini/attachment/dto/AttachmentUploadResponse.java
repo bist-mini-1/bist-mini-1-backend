@@ -15,8 +15,17 @@ public class AttachmentUploadResponse {
     @Schema(description = "원본 파일명", example = "sample.png")
     private String originalName;
 
-    @Schema(description = "접근 URL", example = "/api/attachments/1627/image")
+    @Schema(description = "기본 접근 URL", example = "/api/attachments/1627/image")
     private String fileUrl;
+
+    @Schema(description = "다운로드 URL", example = "/api/attachments/1627/download")
+    private String downloadUrl;
+
+    @Schema(description = "이미지 여부", example = "true")
+    private Boolean image;
+
+    @Schema(description = "본문에 바로 삽입할 마크다운", example = "![1627](/api/attachments/1627/image)")
+    private String markdown;
 
     @Schema(description = "업로드 타입", example = "IMAGE")
     private String uploadType;

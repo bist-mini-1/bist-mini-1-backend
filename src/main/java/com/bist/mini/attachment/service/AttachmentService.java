@@ -60,11 +60,17 @@ public class AttachmentService {
                 attachmentDao.insert(attachment);
 
                 // 저장된 attachment의 id를 활용한 URL 생성
-                String fileUrl = "/api/attachments/" + attachment.getAttachment_id() + "/image";
+                boolean isImage = isImageContentType(file.getContentType());
+                String imageUrl = "/api/attachments/" + attachment.getAttachment_id() + "/image";
+                String downloadUrl = "/api/attachments/" + attachment.getAttachment_id() + "/download";
+                String fileUrl = isImage ? imageUrl : downloadUrl;
                 responses.add(AttachmentUploadResponse.builder()
                         .attachmentId(attachment.getAttachment_id())
                         .originalName(file.getOriginalFilename())
                         .fileUrl(fileUrl)
+                    .downloadUrl(downloadUrl)
+                    .image(isImage)
+                    .markdown(buildMarkdownSnippet(attachment.getAttachment_id(), file.getOriginalFilename(), file.getContentType(), downloadUrl, imageUrl, file.getSize()))
                         .uploadType(uploadType)
                         .fileSize(file.getSize())
                         .build());
@@ -86,7 +92,7 @@ public class AttachmentService {
     @Transactional
     public String syncPostAttachments(Long postId, String thumbnailUrl, List<String> tempAttachmentIdsRaw, List<String> tempInlineImageIdsRaw, String content) {
         // 이제 content에서 attachment_id를 자동으로 파싱합니다.
-        // 패턴: /api/attachments/{id}/image
+        // 패턴: /api/attachments/{id}/image 또는 /api/attachments/{id}/download
         List<Long> attachmentIdsInContent = extractAttachmentIdsFromContent(content);
         
         // content의 attachment_id들을 이 post와 연결
@@ -122,7 +128,7 @@ public class AttachmentService {
     
     private Long extractIdFromUrl(String url) {
         if (url == null) return null;
-        Pattern pattern = Pattern.compile("/api/attachments/(\\d+)/image");
+        Pattern pattern = Pattern.compile("/?api/attachments/(\\d+)/(?:image|download)");
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
             try {
@@ -140,8 +146,8 @@ public class AttachmentService {
             return ids;
         }
         
-        // 정규표현식으로 /api/attachments/{id}/image 패턴 찾기
-        Pattern pattern = Pattern.compile("/api/attachments/(\\d+)/image");
+        // 정규표현식으로 /api/attachments/{id}/image 또는 /api/attachments/{id}/download 패턴 찾기
+        Pattern pattern = Pattern.compile("/?api/attachments/(\\d+)/(?:image|download)");
         Matcher matcher = pattern.matcher(content);
         
         while (matcher.find()) {
@@ -203,5 +209,45 @@ public class AttachmentService {
             }
         }
         return "";
+    }
+
+    private boolean isImageContentType(String contentType) {
+        return contentType != null && contentType.toLowerCase().startsWith("image/");
+    }
+
+    private String buildMarkdownSnippet(Long attachmentId, String originalName, String contentType, String downloadUrl, String imageUrl, long fileSize) {
+        if (isImageContentType(contentType)) {
+            return "![" + attachmentId + "](" + imageUrl + ")";
+        }
+
+        String safeName = originalName == null || originalName.isBlank() ? "download" : escapeMarkdownText(originalName);
+        return "> [📎 " + safeName + "](" + downloadUrl + ")\n"
+                + "> 다운로드 파일 · " + formatFileSize(fileSize);
+    }
+
+    private String escapeMarkdownText(String text) {
+        return text
+                .replace("\\", "\\\\")
+                .replace("[", "\\[")
+                .replace("]", "\\]")
+                .replace("(", "\\(")
+                .replace(")", "\\)");
+    }
+
+    private String formatFileSize(long fileSize) {
+        if (fileSize < 1024) {
+            return fileSize + " B";
+        }
+
+        double value = fileSize;
+        String[] units = {"KB", "MB", "GB", "TB"};
+        int unitIndex = -1;
+
+        while (value >= 1024 && unitIndex < units.length - 1) {
+            value = value / 1024.0;
+            unitIndex++;
+        }
+
+        return String.format(unitIndex == 0 ? "%.0f %s" : "%.1f %s", value, units[unitIndex]);
     }
 }

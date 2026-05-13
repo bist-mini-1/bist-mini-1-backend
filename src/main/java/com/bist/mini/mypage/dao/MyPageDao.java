@@ -35,6 +35,12 @@ public interface MyPageDao {
     /** 프로필 이미지(BLOB) 조회 */
     ProfileImage selectProfileImageByMemberId(@Param("memberId") Long memberId);
 
+    /** 내 게시글 목록 조회 */
+    List<com.bist.mini.mypage.dto.MyPostResponse> selectMyPosts(@Param("memberId") Long memberId);
+
+    /** 특정 유저의 공개 게시글 목록 조회 */
+    List<com.bist.mini.mypage.dto.MyPostResponse> selectUserPosts(@Param("memberId") Long memberId);
+
     /** 내가 북마크한 게시글 목록 조회 (최신 북마크 순) */
-    List<Post> selectBookmarkedPosts(@Param("memberId") Long memberId);
+    List<com.bist.mini.mypage.dto.MyPostResponse> selectBookmarkedPosts(@Param("memberId") Long memberId);
 }

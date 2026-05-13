@@ -24,7 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class MyPageService {
     private final MemberDao memberDao;
     private final MemberInterestTagDao memberInterestTagDao;
     private final PostQueryDao postQueryDao;
+    private final com.bist.mini.post.dao.TagDao tagDao;
     private final PasswordEncoder passwordEncoder;
 
     // ── 프로필 조회 ──────────────────────────────────────────────────────────
@@ -183,9 +187,9 @@ public class MyPageService {
 
     @Transactional(readOnly = true)
     public List<MyPostResponse> getMyPosts(Long memberId) {
-        return postQueryDao.findByMemberId(memberId).stream()
-                .map(MyPostResponse::from)
-                .toList();
+        List<MyPostResponse> posts = myPageDao.selectMyPosts(memberId);
+        attachTags(posts);
+        return posts;
     }
 
     // ── 타인 프로필 조회 ──────────────────────────────────────────────────────────
@@ -203,18 +207,34 @@ public class MyPageService {
 
     @Transactional(readOnly = true)
     public List<MyPostResponse> getUserPosts(Long memberId) {
-        return postQueryDao.findPublicByMemberId(memberId).stream()
-                .map(MyPostResponse::from)
-                .toList();
+        List<MyPostResponse> posts = myPageDao.selectUserPosts(memberId);
+        attachTags(posts);
+        return posts;
     }
 
     // ── 북마크한 게시글 목록 ────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<MyPostResponse> getBookmarkedPosts(Long memberId) {
-        return myPageDao.selectBookmarkedPosts(memberId).stream()
-                .map(MyPostResponse::from)
-                .toList();
+        List<MyPostResponse> posts = myPageDao.selectBookmarkedPosts(memberId);
+        attachTags(posts);
+        return posts;
+    }
+
+    private void attachTags(List<MyPostResponse> posts) {
+        if (posts == null || posts.isEmpty()) {
+            return;
+        }
+
+        List<Long> postIds = posts.stream().map(MyPostResponse::getPostId).toList();
+        List<com.bist.mini.post.dto.PostTag> postTags = tagDao.findTagsByPostIds(postIds);
+
+        Map<Long, List<String>> tagsByPostId = postTags.stream()
+                .collect(Collectors.groupingBy(
+                        com.bist.mini.post.dto.PostTag::getPostId,
+                        Collectors.mapping(pt -> pt.getTag().getName(), Collectors.toList())));
+
+        posts.forEach(post -> post.setTags(tagsByPostId.getOrDefault(post.getPostId(), new ArrayList<>())));
     }
 
     // ── 관심 태그 조회 ────────────────────────────────────────────────────────

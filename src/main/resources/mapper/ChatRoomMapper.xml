@@ -19,14 +19,11 @@
         <result property="profileImageUrl" column="profile_image_url" />
     </resultMap>
 
-    <insert id="insertRoom" parameterType="com.bist.mini.chat.entity.ChatRoom">
-        <selectKey keyProperty="roomId" resultType="long" order="BEFORE">
-            SELECT CHAT_ROOMS_SEQ.NEXTVAL FROM DUAL
-        </selectKey>
+    <insert id="insertRoom" parameterType="com.bist.mini.chat.entity.ChatRoom" useGeneratedKeys="true" keyProperty="roomId" keyColumn="room_id">
         INSERT INTO chat_rooms (
-            room_id, room_name, room_type, created_at
+            room_name, room_type, created_at
         ) VALUES (
-            #{roomId}, #{roomName, jdbcType=VARCHAR}, #{roomType, jdbcType=VARCHAR}, SYSDATE
+            #{roomName, jdbcType=VARCHAR}, #{roomType, jdbcType=VARCHAR}, SYSDATE
         )
     </insert>
 

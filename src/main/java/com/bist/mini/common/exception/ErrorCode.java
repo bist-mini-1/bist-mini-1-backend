@@ -30,6 +30,12 @@ public enum ErrorCode {
     // Post
     POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "P001", "해당 게시글에 대한 권한이 없습니다."),
 
+    // Attachment
+    ATTACHMENT_FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "AT001", "파일 크기가 허용된 용량을 초과했습니다."),
+    ATTACHMENT_EXTENSION_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "AT002", "허용되지 않는 파일 확장자입니다."),
+    ATTACHMENT_MIME_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "AT003", "허용되지 않는 MIME 타입입니다."),
+    ATTACHMENT_TOTAL_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "AT004", "게시글 전체 첨부파일 용량은 200MB를 초과할 수 없습니다."),
+
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N001", "해당 알림을 찾을 수 없습니다."),
     NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "N002", "본인의 알림만 처리할 수 있습니다."),

@@ -13,10 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +27,21 @@ public class AttachmentService {
 
     private static final String TYPE_IMAGE = "IMAGE";
     private static final String TYPE_FILE = "FILE";
-    private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
-    private static final long MAX_INLINE_IMAGE_SIZE = 10L * 1024 * 1024;
+    private static final long MAX_POST_TOTAL_SIZE = 200L * 1024 * 1024;
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of("pdf", "hwp", "docx", "pptx", "xlsx", "zip");
+    private static final Map<String, Set<String>> ALLOWED_MIME_TYPES = Map.of(
+            "jpg", Set.of("image/jpeg"),
+            "jpeg", Set.of("image/jpeg"),
+            "png", Set.of("image/png"),
+            "webp", Set.of("image/webp"),
+            "pdf", Set.of("application/pdf"),
+            "hwp", Set.of("application/x-hwp", "application/haansofthwp", "application/vnd.hancom.hwp"),
+            "docx", Set.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+            "pptx", Set.of("application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+            "xlsx", Set.of("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            "zip", Set.of("application/zip", "application/x-zip-compressed", "multipart/x-zip")
+    );
 
     private final AttachmentDao attachmentDao;
 
@@ -39,9 +55,6 @@ public class AttachmentService {
             try {
                 byte[] fileData = file.getBytes();
                 String extension = extractExtension(file.getOriginalFilename());
-                if (extension.startsWith(".")) {
-                    extension = extension.substring(1);
-                }
 
                 // DB에 직접 저장 (post_id는 null, 게시글 저장 시 업데이트됨)
                 Attachment attachment = Attachment.builder()
@@ -94,6 +107,13 @@ public class AttachmentService {
         // 이제 content에서 attachment_id를 자동으로 파싱합니다.
         // 패턴: /api/attachments/{id}/image 또는 /api/attachments/{id}/download
         List<Long> attachmentIdsInContent = extractAttachmentIdsFromContent(content);
+        LinkedHashSet<Long> attachmentIdsForSizeValidation = new LinkedHashSet<>(attachmentIdsInContent);
+        Long thumbnailId = extractIdFromUrl(thumbnailUrl);
+        if (thumbnailId != null) {
+            attachmentIdsForSizeValidation.add(thumbnailId);
+        }
+
+        validatePostAttachmentSize(new ArrayList<>(attachmentIdsForSizeValidation));
         
         // content의 attachment_id들을 이 post와 연결
         if (!attachmentIdsInContent.isEmpty()) {
@@ -113,14 +133,11 @@ public class AttachmentService {
         }
 
         // 썸네일 설정 처리
-        if (thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
-            Long thumbnailId = extractIdFromUrl(thumbnailUrl);
-            if (thumbnailId != null) {
-                // 해당 포스트의 기존 썸네일들을 모두 IMAGE로 초기화
-                attachmentDao.resetThumbnailTypeByPostId(postId);
-                // 선택된 이미지를 THUMBNAIL로 설정
-                attachmentDao.updateType(thumbnailId, "THUMBNAIL");
-            }
+        if (thumbnailId != null) {
+            // 해당 포스트의 기존 썸네일들을 모두 IMAGE로 초기화
+            attachmentDao.resetThumbnailTypeByPostId(postId);
+            // 선택된 이미지를 THUMBNAIL로 설정
+            attachmentDao.updateType(thumbnailId, "THUMBNAIL");
         }
         
         return content;
@@ -187,28 +204,66 @@ public class AttachmentService {
                 throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
             }
 
-            long maxSize = TYPE_IMAGE.equals(uploadType) ? MAX_INLINE_IMAGE_SIZE : MAX_FILE_SIZE;
-            if (file.getSize() > maxSize) {
-                throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-            }
-
-            if (TYPE_IMAGE.equals(uploadType)) {
-                String contentType = file.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-                }
-            }
+            validateExtensionAndMimeType(file, uploadType);
         }
     }
 
     private String extractExtension(String originalName) {
-        if (originalName != null) {
-            int idx = originalName.lastIndexOf('.');
-            if (idx >= 0 && idx < originalName.length() - 1) {
-                return originalName.substring(idx);
-            }
+        if (originalName == null || originalName.isBlank()) {
+            return "";
+        }
+
+        int idx = originalName.lastIndexOf('.');
+        if (idx >= 0 && idx < originalName.length() - 1) {
+            return originalName.substring(idx + 1).trim().toLowerCase(Locale.ROOT);
         }
         return "";
+    }
+
+    private void validateExtensionAndMimeType(MultipartFile file, String uploadType) {
+        String extension = extractExtension(file.getOriginalFilename());
+        Set<String> allowedExtensions = TYPE_IMAGE.equals(uploadType) ? ALLOWED_IMAGE_EXTENSIONS : ALLOWED_FILE_EXTENSIONS;
+
+        if (extension.isEmpty() || !allowedExtensions.contains(extension)) {
+            throw new CustomException(ErrorCode.ATTACHMENT_EXTENSION_NOT_ALLOWED);
+        }
+
+        String contentType = normalizeContentType(file.getContentType());
+        Set<String> allowedMimeTypes = ALLOWED_MIME_TYPES.get(extension);
+        if (contentType.isEmpty() || allowedMimeTypes == null || !allowedMimeTypes.contains(contentType)) {
+            throw new CustomException(ErrorCode.ATTACHMENT_MIME_TYPE_NOT_ALLOWED);
+        }
+    }
+
+    private void validatePostAttachmentSize(List<Long> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return;
+        }
+
+        List<Attachment> attachments = attachmentDao.findByIds(attachmentIds);
+        if (attachments.size() != attachmentIds.size()) {
+            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+        }
+
+        long totalSize = attachments.stream()
+                .mapToLong(attachment -> attachment.getFile_size() == null ? 0L : attachment.getFile_size())
+                .sum();
+
+        if (totalSize > MAX_POST_TOTAL_SIZE) {
+            throw new CustomException(ErrorCode.ATTACHMENT_TOTAL_SIZE_EXCEEDED);
+        }
+    }
+
+    private String normalizeContentType(String contentType) {
+        if (contentType == null) {
+            return "";
+        }
+        String normalized = contentType.trim().toLowerCase(Locale.ROOT);
+        int separatorIndex = normalized.indexOf(';');
+        if (separatorIndex >= 0) {
+            normalized = normalized.substring(0, separatorIndex).trim();
+        }
+        return normalized;
     }
 
     private boolean isImageContentType(String contentType) {

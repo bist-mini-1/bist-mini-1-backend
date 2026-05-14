@@ -188,18 +188,27 @@ public class ChatService {
         
         // 메시지 보낸 사람의 정보를 가져오기 위해 멤버 조회
         List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(message.getRoomId());
+        
+        int unreadCount = 0;
         if (members != null) {
             for (ChatRoomMember m : members) {
+                // 메시지 발송자는 제외하고 나머지 인원의 읽음 여부 확인
                 if (m.getMemberId().equals(message.getSenderId())) {
                     if (senderNickname == null) senderNickname = m.getNickname();
                     senderProfileImage = m.getProfileImageUrl();
-                    break;
+                    continue;
+                }
+                
+                // 상대방이 마지막으로 읽은 시간보다 메시지 생성 시간이 뒤면 안 읽음
+                if (m.getLastReadAt() == null || (message.getCreatedAt() != null && m.getLastReadAt().isBefore(message.getCreatedAt()))) {
+                    unreadCount++;
                 }
             }
         }
         
-        return ChatMessageResponse.from(message, 0, isMine, senderNickname, senderProfileImage);
+        return ChatMessageResponse.from(message, unreadCount, isMine, senderNickname, senderProfileImage);
     }
+
 
     public List<ChatMessageResponse> convertToResponses(List<ChatMessage> messages, Long currentMemberId) {
         if (messages.isEmpty()) return List.of();

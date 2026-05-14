@@ -82,11 +82,30 @@ public class PostController {
         return ApiResponse.success(null);
     }
 
+    @Operation(summary = "임시저장 게시글 삭제", description = "본인이 작성한 임시저장 게시글을 삭제합니다.")
+    @DeleteMapping("/temp/{postId}")
+    public ApiResponse<Void> deleteTempPost(
+            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @LoginMember Long memberId) {
+        log.debug("임시저장 게시글 삭제 요청: postId={}, memberId={}", postId, memberId);
+        postService.deleteTempPost(postId, memberId);
+        return ApiResponse.success(null);
+    }
+
     @Operation(summary = "임시저장 게시글 목록 조회", description = "본인이 작성한 임시저장 게시글 목록을 조회합니다.")
     @GetMapping("/temp/list")
     public ApiResponse<List<PostResponse>> getTempPostList(
             @LoginMember Long memberId) {
         List<Post> tempPosts = postService.getTempPostList(memberId);
         return ApiResponse.success(postService.convertToResponses(tempPosts, memberId));
+    }
+
+    @Operation(summary = "임시저장 게시글 상세 조회", description = "본인이 작성한 임시저장 게시글을 상세 조회합니다.")
+    @GetMapping("/temp/{postId}")
+    public ApiResponse<PostResponse> getTempPostDetail(
+            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @LoginMember Long memberId) {
+        Post tempPost = postService.getTempPostDetail(postId, memberId);
+        return ApiResponse.success(postService.convertToResponse(tempPost, memberId));
     }
 }

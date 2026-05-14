@@ -241,9 +241,6 @@ public class AttachmentService {
         }
 
         List<Attachment> attachments = attachmentDao.findByIds(attachmentIds);
-        if (attachments.size() != attachmentIds.size()) {
-            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
-        }
 
         long totalSize = attachments.stream()
                 .mapToLong(attachment -> attachment.getFile_size() == null ? 0L : attachment.getFile_size())

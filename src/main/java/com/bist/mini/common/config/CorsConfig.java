@@ -19,11 +19,13 @@ public class CorsConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
+                "http://192.168.5.28:3000",
                 "http://192.168.5.3:3000",
                 "http://192.168.5.47:3000",
                 "http://192.168.5.39:3000",
                 "http://192.168.5.*:3000"
         ));
+
         
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Last-Event-ID", "X-Requested-With"));

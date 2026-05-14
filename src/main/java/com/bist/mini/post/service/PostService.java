@@ -40,6 +40,37 @@ public class PostService {
     public Post createPost(Post post, PostRequest postRequest) {
         validateMember(post.getMemberId());
 
+        Long tempPostId = postRequest.getTempPostId();
+        if (tempPostId != null) {
+            Post existingPost = getPostById(tempPostId);
+            if (!existingPost.getMemberId().equals(post.getMemberId())) {
+                throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
+            }
+
+            existingPost.setTitle(post.getTitle());
+            existingPost.setContent(post.getContent());
+            existingPost.setIsPublic(post.getIsPublic());
+            existingPost.setIsTemp(post.getIsTemp());
+            existingPost.setUpdatedAt(LocalDateTime.now());
+
+            int updated = postDao.updatePost(existingPost);
+            if (updated == 0) {
+                throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+            }
+
+            postDao.softDeletePostTagsByPostId(existingPost.getPostId());
+            syncPostTags(existingPost.getPostId(), postRequest.getTags());
+
+            String updatedContent = attachmentService.syncPostAttachments(existingPost.getPostId(), postRequest.getThumbnail(),
+                    postRequest.getTempAttachmentIds(), postRequest.getTempInlineImageIds(), existingPost.getContent());
+            if (!updatedContent.equals(existingPost.getContent())) {
+                existingPost.setContent(updatedContent);
+                postDao.updatePost(existingPost);
+            }
+
+            return postQueryDao.findById(existingPost.getPostId());
+        }
+
         postDao.insert(post);
         syncPostTags(post.getPostId(), postRequest.getTags());
         String updatedContent = attachmentService.syncPostAttachments(post.getPostId(), postRequest.getThumbnail(),
@@ -146,6 +177,11 @@ public class PostService {
     }
 
     @Transactional
+    public void deleteTempPost(Long postId, Long memberId) {
+        deletePost(postId, memberId);
+    }
+
+    @Transactional
     public void incrementViewCount(Long postId) {
         postDao.updateViewCount(postId);
     }
@@ -153,6 +189,25 @@ public class PostService {
     public List<Post> getTempPostList(Long memberId) {
         validateMember(memberId);
         return postQueryDao.findTempByMemberId(memberId);
+    }
+
+    public Post getTempPostDetail(Long postId, Long memberId) {
+        validateMember(memberId);
+
+        Post post = postQueryDao.findById(postId);
+        if (post == null) {
+            throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
+        }
+
+        if (!post.getMemberId().equals(memberId)) {
+            throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
+        }
+
+        if (!"Y".equals(post.getIsTemp())) {
+            throw new CustomException(ErrorCode.POST_ACCESS_DENIED);
+        }
+
+        return post;
     }
 
     public PostResponse convertToResponse(Post post, Long memberId) {

@@ -49,6 +49,9 @@ public class PostRequest {
    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/thumbnail.jpg")
    private String thumbnail;
 
+   @Schema(description = "기존 임시저장 게시글 ID", example = "12")
+   private Long tempPostId;
+
    public Post toEntity(Long memberId) {
       return Post.builder()
             .memberId(memberId)

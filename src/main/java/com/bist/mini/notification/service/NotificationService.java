@@ -191,9 +191,9 @@ public class NotificationService {
                     .name("connect")
                     .data("connected!"));
             log.info("SSE: Initial connect event sent to member {}", finalMemberId);
-        } catch (IOException e) {
-            log.error("SSE: Failed to send initial connect event to member {}", finalMemberId);
-            emitters.remove(finalMemberId);
+        } catch (Exception e) {
+            log.error("SSE: Failed to send initial connect event to member {}", finalMemberId, e);
+            removeEmitter(finalMemberId, emitter);
         }
 
         return emitter;
@@ -218,8 +218,8 @@ public class NotificationService {
                     emitter.send(SseEmitter.event()
                             .name(finalEventName)
                             .data(finalData));
-                } catch (IOException e) {
-                    log.error("SSE: Failed to send event to member {}, removing one emitter", finalMemberId);
+                } catch (Exception e) {
+                    log.error("SSE: Failed to send event to member {}, removing one emitter", finalMemberId, e);
                     removeEmitter(finalMemberId, emitter);
                 }
             }
@@ -257,8 +257,8 @@ public class NotificationService {
                             .name("notification")
                             .data(finalData)
                             .comment(finalComment));
-                } catch (IOException e) {
-                    log.error("SSE: Failed to send notification to member {}, removing one emitter", finalMemberId);
+                } catch (Exception e) {
+                    log.error("SSE: Failed to send notification to member {}, removing one emitter", finalMemberId, e);
                     removeEmitter(finalMemberId, emitter);
                 }
             }

@@ -6,13 +6,21 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import com.bist.mini.common.resolver.LoginMemberArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 /**
  * WebSocket(STOMP) 설정
  */
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final LoginMemberArgumentResolver loginMemberArgumentResolver;
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
@@ -29,5 +37,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws-chat")
                 .setAllowedOriginPatterns("*") // CORS 허용 (실제 운영 시에는 특정 도메인만 허용 권장)
                 .withSockJS(); // SockJS 지원
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(loginMemberArgumentResolver);
     }
 }

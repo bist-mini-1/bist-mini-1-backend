@@ -4,6 +4,7 @@ import com.bist.mini.chat.dto.ChatMessageRequest;
 import com.bist.mini.chat.dto.ChatMessageResponse;
 import com.bist.mini.chat.entity.ChatMessage;
 import com.bist.mini.chat.service.ChatService;
+import com.bist.mini.common.annotation.LoginMember;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -26,16 +27,11 @@ public class ChatSocketController {
      * 클라이언트가 /pub/chat/message로 보낸 메시지를 처리
      */
     @MessageMapping("/chat/message")
-    public void message(ChatMessageRequest request) {
-        log.debug("WebSocket 메시지 수신: senderId={}, content={}", 
-                  request.getSenderId(), request.getContent());
-        
-        // 1. 메시지 엔티티 변환 (이때 roomId는 request에 포함되어야 함)
-        // ChatMessageRequest에 roomId 필드를 추가하거나, 별도의 래퍼 DTO를 사용할 수 있습니다.
-        // 여기서는 편의상 request에 roomId가 포함되어 있다고 가정하겠습니다.
+    public void message(ChatMessageRequest request, @LoginMember Long senderId) {
+        // 1. 메시지 엔티티 변환
         ChatMessage message = ChatMessage.builder()
                 .roomId(request.getRoomId())
-                .senderId(request.getSenderId())
+                .senderId(senderId)
                 .messageType(request.getMessageType())
                 .content(request.getContent())
                 .build();

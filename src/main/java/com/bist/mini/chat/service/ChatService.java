@@ -172,6 +172,9 @@ public class ChatService {
         readEvent.put("createdAt", LocalDateTime.now()); // 읽은 시간
         
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, readEvent);
+        
+        // SSE 알림 전송 (나의 안 읽음 카운트 갱신용)
+        notificationService.send(memberId, "read_update", "chat_unread_update");
     }
 
     /**

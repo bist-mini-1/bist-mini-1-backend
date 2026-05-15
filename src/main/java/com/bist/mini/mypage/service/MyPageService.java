@@ -14,7 +14,6 @@ import com.bist.mini.mypage.dto.MyPostResponse;
 import com.bist.mini.mypage.dto.ProfileImageUpdateResponse;
 import com.bist.mini.mypage.entity.MemberProfile;
 import com.bist.mini.mypage.entity.ProfileImage;
-import com.bist.mini.post.dao.PostQueryDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +35,6 @@ public class MyPageService {
     private final MyPageDao myPageDao;
     private final MemberDao memberDao;
     private final MemberInterestTagDao memberInterestTagDao;
-    private final PostQueryDao postQueryDao;
     private final com.bist.mini.post.dao.TagDao tagDao;
     private final PasswordEncoder passwordEncoder;
 
@@ -146,11 +144,13 @@ public class MyPageService {
             throw new CustomException(ErrorCode.ENTITY_NOT_FOUND);
         }
 
-        // magic bytes로 content-type 감지
         MediaType mediaType = detectMediaType(imageData);
+        if (mediaType == null) {
+            mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        }
 
         return ResponseEntity.ok()
-                .contentType(mediaType)
+                .contentType(java.util.Objects.requireNonNull(mediaType))
                 .body(imageData);
     }
 

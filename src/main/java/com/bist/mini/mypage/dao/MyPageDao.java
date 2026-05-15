@@ -2,7 +2,6 @@ package com.bist.mini.mypage.dao;
 
 import com.bist.mini.mypage.entity.MemberProfile;
 import com.bist.mini.mypage.entity.ProfileImage;
-import com.bist.mini.post.entity.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

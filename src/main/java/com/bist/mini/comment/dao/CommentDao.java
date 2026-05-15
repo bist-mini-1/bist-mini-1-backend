@@ -21,6 +21,20 @@ public interface CommentDao {
             @Param("limit") int limit
     );
 
+    /**
+     * 게시글별 최상위 댓글 목록 조회 (페이징 적용)
+     */
+    List<Comment> findRootsByPostId(
+            @Param("postId") Long postId,
+            @Param("offset") int offset,
+            @Param("limit") int limit
+    );
+
+    /**
+     * 특정 부모 댓글들의 모든 답글 조회
+     */
+    List<Comment> findRepliesByParentIds(@Param("parentIds") List<Long> parentIds);
+
     Comment findById(Long commentId);
 
     List<Comment> findByParentId(Long parentId);
@@ -37,6 +51,11 @@ public interface CommentDao {
      * 게시글별 전체 댓글 수 조회
      */
     int countByPostId(@Param("postId") Long postId);
+
+    /**
+     * 게시글별 최상위 댓글 수 조회
+     */
+    int countRootsByPostId(@Param("postId") Long postId);
 
     /**
      * 게시글별 베스트 댓글 조회 (좋아요 가장 많은 것)

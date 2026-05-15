@@ -134,12 +134,18 @@ public class ChatService {
         // 마지막 읽은 시간 업데이트
         chatRoomDao.updateLastReadAt(message.getRoomId(), message.getSenderId());
 
+        // 읽음 이벤트 전송 (상대방의 '1' 제거용)
+        Map<String, Object> readEvent = new HashMap<>();
+        readEvent.put("messageType", "READ");
+        readEvent.put("roomId", message.getRoomId());
+        readEvent.put("senderId", message.getSenderId());
+        readEvent.put("createdAt", LocalDateTime.now());
+        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), readEvent);
+
         // 수신자들에게 SSE 알림 전송 (안 읽음 카운트 갱신용)
         List<ChatRoomMember> members = chatRoomDao.findMembersByRoomId(message.getRoomId());
         for (ChatRoomMember m : members) {
             if (!m.getMemberId().equals(message.getSenderId())) {
-                // notificationService의 범용 send 메서드 활용
-                // 데이터는 단순 문자열이나 간단한 객체 전송
                 notificationService.send(m.getMemberId(), "new_message", "chat_unread_update");
             }
         }
@@ -172,6 +178,9 @@ public class ChatService {
         readEvent.put("createdAt", LocalDateTime.now()); // 읽은 시간
         
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, readEvent);
+        
+        // SSE 알림 전송 (나의 안 읽음 카운트 갱신용)
+        notificationService.send(memberId, "read_update", "chat_unread_update");
     }
 
     /**

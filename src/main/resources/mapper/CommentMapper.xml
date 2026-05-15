@@ -37,6 +37,51 @@
         OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
     </select>
 
+    <select id="findRootsByPostId" resultMap="commentResultMap">
+        SELECT 
+            c.comment_id,
+            c.post_id,
+            c.member_id,
+            c.parent_id,
+            c.content,
+            c.is_deleted,
+            c.created_at,
+            c.updated_at,
+            c.deleted_at,
+            m.nickname,
+            CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END as profile_image_url
+        FROM comments c
+        JOIN members m ON c.member_id = m.member_id
+        WHERE c.post_id = #{postId}
+          AND c.parent_id IS NULL
+          AND c.is_deleted = 'N'
+        ORDER BY c.created_at DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="findRepliesByParentIds" resultMap="commentResultMap">
+        SELECT 
+            c.comment_id,
+            c.post_id,
+            c.member_id,
+            c.parent_id,
+            c.content,
+            c.is_deleted,
+            c.created_at,
+            c.updated_at,
+            c.deleted_at,
+            m.nickname,
+            CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END as profile_image_url
+        FROM comments c
+        JOIN members m ON c.member_id = m.member_id
+        WHERE c.parent_id IN 
+        <foreach item="id" collection="parentIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          AND c.is_deleted = 'N'
+        ORDER BY c.created_at ASC
+    </select>
+
     <select id="findById" parameterType="long" resultType="Comment">
         SELECT 
             comment_id,
@@ -124,6 +169,14 @@
         SELECT COUNT(*)
         FROM comments
         WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </select>
+
+    <select id="countRootsByPostId" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE post_id = #{postId}
+          AND parent_id IS NULL
           AND is_deleted = 'N'
     </select>
 

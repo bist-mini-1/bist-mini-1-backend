@@ -41,7 +41,24 @@ public class CommentService {
      */
     public CommentListResponse getCommentsByPost(Long postId, Long currentMemberId, int page, int size) {
         int offset = (page - 1) * size;
-        List<Comment> comments = commentDao.findByPostId(postId, offset, size);
+        
+        // 1. 최상위 댓글(Root) 목록 페이징 조회
+        List<Comment> roots = commentDao.findRootsByPostId(postId, offset, size);
+        
+        // 2. 최상위 댓글들의 ID 추출
+        List<Long> rootIds = roots.stream()
+                .map(Comment::getCommentId)
+                .collect(Collectors.toList());
+        
+        // 3. 최상위 댓글들에 달린 모든 답글(Reply) 조회 (답글이 있는 경우에만)
+        java.util.ArrayList<Comment> allComments = new java.util.ArrayList<>(roots);
+        if (!rootIds.isEmpty()) {
+            List<Comment> replies = commentDao.findRepliesByParentIds(rootIds);
+            allComments.addAll(replies);
+        }
+        
+        // 4. 최상위 댓글(Root) 기준의 전체 개수 및 전체 댓글 수 조회
+        int totalRoots = commentDao.countRootsByPostId(postId);
         int totalCount = commentDao.countByPostId(postId);
         
         // 게시글 정보 조회 (삭제 권한 체크용)
@@ -52,11 +69,12 @@ public class CommentService {
         Comment bestCommentEntity = commentDao.findBestCommentByPostId(postId);
         CommentResponse bestComment = (bestCommentEntity != null) ? convertToResponse(bestCommentEntity, currentMemberId, postAuthorId) : null;
 
-        List<CommentResponse> commentResponses = comments.stream()
+        List<CommentResponse> commentResponses = allComments.stream()
                 .map(comment -> convertToResponse(comment, currentMemberId, postAuthorId))
                 .collect(Collectors.toList());
 
-        return CommentListResponse.of(commentResponses, totalCount, bestComment);
+        // totalComments는 UI 표시용, totalRoots는 페이징 버튼 노출 여부 결정용
+        return CommentListResponse.of(commentResponses, totalCount, totalRoots, bestComment);
     }
 
     /**

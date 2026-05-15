@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 팔로우 비즈니스 로직 서비스
@@ -113,11 +112,4 @@ public class FollowService {
                 .toList();
     }
 
-    // ── 내부 헬퍼 ─────────────────────────────────────────────────────────────
-
-    private String buildProfileImageUrl(String profileImage, String baseUrl) {
-        if (profileImage == null || profileImage.isBlank()) return null;
-        if (profileImage.startsWith("http")) return profileImage;
-        return baseUrl + profileImage;
-    }
 }

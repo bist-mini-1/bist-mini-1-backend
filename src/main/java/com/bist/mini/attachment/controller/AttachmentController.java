@@ -57,8 +57,13 @@ public class AttachmentController {
     @GetMapping("/{id}/download")
     public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long id) {
         Attachment attachment = attachmentService.getAttachment(id);
+        String fileType = attachment.getFile_type();
+        if (fileType == null || fileType.isEmpty()) {
+            fileType = "application/octet-stream";
+        }
+
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(attachment.getFile_type() != null ? attachment.getFile_type() : "application/octet-stream"))
+                .contentType(MediaType.parseMediaType(fileType))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment()
                                 .filename(attachment.getOriginal_name(), StandardCharsets.UTF_8)

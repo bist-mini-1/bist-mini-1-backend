@@ -3,7 +3,6 @@ package com.bist.mini.post.service;
 import com.bist.mini.post.dao.PostQueryDao;
 import com.bist.mini.post.dto.PostListResponse;
 import com.bist.mini.post.dto.PostPageResponse;
-import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.dto.PostTagResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

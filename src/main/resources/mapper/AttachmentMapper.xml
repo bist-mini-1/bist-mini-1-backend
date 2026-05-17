@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.attachment.dao.AttachmentDao">
+
+    <resultMap id="AttachmentResultMap" type="com.bist.mini.attachment.entity.Attachment">
+        <id property="attachment_id" column="attachment_id"/>
+        <result property="post_id" column="post_id"/>
+        <result property="original_name" column="original_name"/>
+        <result property="file_size" column="file_size"/>
+        <result property="file_type" column="file_type"/>
+        <result property="extension" column="extension"/>
+        <result property="upload_type" column="upload_type"/>
+        <result property="file_data" column="file_data" jdbcType="BLOB"/>
+        <result property="download_count" column="download_count"/>
+        <result property="is_deleted" column="is_deleted"/>
+        <result property="created_at" column="created_at"/>
+        <result property="deleted_at" column="deleted_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.bist.mini.attachment.entity.Attachment" useGeneratedKeys="true" keyProperty="attachment_id" keyColumn="attachment_id">
+        INSERT INTO attachments (
+            post_id, original_name, file_size, file_type, extension, upload_type,
+            file_data, download_count, is_deleted, created_at
+        ) VALUES (
+            #{post_id, jdbcType=NUMERIC}, #{original_name, jdbcType=VARCHAR}, #{file_size, jdbcType=NUMERIC}, #{file_type, jdbcType=VARCHAR}, #{extension, jdbcType=VARCHAR}, #{upload_type, jdbcType=VARCHAR},
+            #{file_data, jdbcType=BLOB}, #{download_count, jdbcType=NUMERIC}, #{is_deleted, jdbcType=VARCHAR}, SYSDATE
+        )
+    </insert>
+
+    <select id="findByIds" resultMap="AttachmentResultMap">
+        SELECT
+            attachment_id, post_id, original_name, file_size, file_type, extension, upload_type,
+            file_data, download_count, is_deleted, created_at, deleted_at
+        FROM attachments
+        WHERE attachment_id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          AND is_deleted = 'N'
+    </select>
+
+    <select id="findActiveByPostId" resultMap="AttachmentResultMap">
+        SELECT
+            attachment_id, post_id, original_name, file_size, file_type, extension, upload_type,
+            file_data, download_count, is_deleted, created_at, deleted_at
+        FROM attachments
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </select>
+
+    <update id="bindToPost">
+        UPDATE attachments
+        SET post_id = #{postId}
+        WHERE attachment_id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeleteByIds">
+        UPDATE attachments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE
+        WHERE attachment_id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          AND is_deleted = 'N'
+    </update>
+
+    <select id="selectAttachmentById" resultMap="AttachmentResultMap">
+        SELECT * FROM attachments WHERE attachment_id = #{attachmentId} AND is_deleted = 'N'
+    </select>
+
+    <update id="updateType">
+        UPDATE attachments
+        SET upload_type = #{uploadType}
+        WHERE attachment_id = #{attachmentId}
+    </update>
+
+    <update id="resetThumbnailTypeByPostId">
+        UPDATE attachments
+        SET upload_type = 'IMAGE'
+        WHERE post_id = #{postId}
+          AND upload_type = 'THUMBNAIL'
+    </update>
+</mapper>

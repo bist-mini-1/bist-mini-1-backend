@@ -1,0 +1,35 @@
+package com.bist.mini.attachment.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+@Schema(description = "첨부 업로드 응답")
+public class AttachmentUploadResponse {
+
+    @Schema(description = "첨부파일 ID (DB)", example = "1627")
+    private Long attachmentId;
+
+    @Schema(description = "원본 파일명", example = "sample.png")
+    private String originalName;
+
+    @Schema(description = "기본 접근 URL", example = "/api/attachments/1627/image")
+    private String fileUrl;
+
+    @Schema(description = "다운로드 URL", example = "/api/attachments/1627/download")
+    private String downloadUrl;
+
+    @Schema(description = "이미지 여부", example = "true")
+    private Boolean image;
+
+    @Schema(description = "본문에 바로 삽입할 마크다운", example = "![1627](/api/attachments/1627/image)")
+    private String markdown;
+
+    @Schema(description = "업로드 타입", example = "IMAGE")
+    private String uploadType;
+
+    @Schema(description = "파일 크기(byte)", example = "12034")
+    private Long fileSize;
+}

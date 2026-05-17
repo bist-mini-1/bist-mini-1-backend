@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.post.dao.TagDao">
+
+    <select id="findByName" resultType="com.bist.mini.post.entity.Tag">
+        SELECT tag_id, name, created_at
+        FROM tags
+        WHERE name = #{name}
+    </select>
+
+    <select id="findById" resultType="com.bist.mini.post.entity.Tag">
+        SELECT tag_id, name, created_at
+        FROM tags
+        WHERE tag_id = #{tagId}
+    </select>
+
+    <insert id="insert" parameterType="com.bist.mini.post.entity.Tag" useGeneratedKeys="true" keyProperty="tagId" keyColumn="tag_id">
+        INSERT INTO tags (
+            name, created_at
+        ) VALUES (
+            #{name}, SYSDATE
+        )
+    </insert>
+
+    <select id="findTagsByPostId" parameterType="long" resultType="com.bist.mini.post.entity.Tag">
+        SELECT t.tag_id as tagId, t.name as name, t.created_at as createdAt
+        FROM post_tags pt
+        JOIN tags t ON pt.tag_id = t.tag_id
+        WHERE pt.post_id = #{postId}
+        ORDER BY t.name
+    </select>
+
+    <select id="findTagsByPostIds" resultType="com.bist.mini.post.dto.PostTag">
+        SELECT pt.post_id as postId, t.tag_id as "tag.tagId", t.name as "tag.name", t.created_at as "tag.createdAt"
+        FROM post_tags pt
+        JOIN tags t ON pt.tag_id = t.tag_id
+        WHERE pt.post_id IN
+        <foreach item="id" collection="postIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY pt.post_id, t.name
+    </select>
+
+    <select id="selectTagList" resultType="com.bist.mini.post.dto.TagResponse">
+        SELECT
+        t.tag_id,
+        t.name,
+        COUNT(p.post_id) AS post_count
+        FROM tags t
+        LEFT JOIN post_tags pt
+        ON t.tag_id = pt.tag_id
+        LEFT JOIN posts p
+        ON pt.post_id = p.post_id
+        AND p.is_deleted = 'N'
+        AND p.is_temp = 'N'
+        AND p.is_public = 'Y'
+        GROUP BY t.tag_id, t.name
+        ORDER BY COUNT(p.post_id) DESC, t.name ASC
+    </select>
+
+</mapper>

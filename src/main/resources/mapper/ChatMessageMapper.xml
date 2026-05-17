@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.chat.dao.ChatMessageDao">
+
+    <resultMap id="chatMessageResultMap" type="com.bist.mini.chat.entity.ChatMessage">
+        <id property="messageId" column="message_id" />
+        <result property="roomId" column="room_id" />
+        <result property="senderId" column="sender_id" />
+        <result property="messageType" column="message_type" />
+        <result property="content" column="content" />
+        <result property="createdAt" column="created_at" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="senderNickname" column="sender_nickname" />
+    </resultMap>
+
+    <insert id="insertMessage" parameterType="com.bist.mini.chat.entity.ChatMessage" useGeneratedKeys="true" keyProperty="messageId" keyColumn="message_id">
+        INSERT INTO chat_messages (
+            room_id, sender_id, message_type, content, created_at, is_deleted
+        ) VALUES (
+            #{roomId}, #{senderId}, #{messageType}, #{content}, SYSDATE, 'N'
+        )
+    </insert>
+
+    <select id="findMessagesByRoomId" resultMap="chatMessageResultMap">
+        SELECT cm.*, m.nickname as sender_nickname
+        FROM chat_messages cm
+        JOIN members m ON cm.sender_id = m.member_id
+        WHERE cm.room_id = #{roomId}
+        ORDER BY cm.created_at DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="findLastMessage" resultMap="chatMessageResultMap">
+        SELECT * FROM (
+            SELECT cm.*, m.nickname as sender_nickname
+            FROM chat_messages cm
+            JOIN members m ON cm.sender_id = m.member_id
+            WHERE cm.room_id = #{roomId}
+            ORDER BY cm.created_at DESC
+        ) WHERE ROWNUM = 1
+    </select>
+
+    <select id="countUnreadMessages" resultType="int">
+        SELECT COUNT(*)
+        FROM chat_messages
+        WHERE room_id = #{roomId}
+        AND is_deleted = 'N'
+        AND created_at > NVL(#{lastReadAt, jdbcType=TIMESTAMP}, TO_DATE('1900-01-01', 'YYYY-MM-DD'))
+    </select>
+
+    <select id="findMessageById" resultMap="chatMessageResultMap">
+        SELECT cm.*, m.nickname as sender_nickname
+        FROM chat_messages cm
+        JOIN members m ON cm.sender_id = m.member_id
+        WHERE cm.message_id = #{messageId}
+    </select>
+
+    <update id="updateMessage">
+        UPDATE chat_messages
+        SET content = #{content}
+        WHERE message_id = #{messageId}
+    </update>
+
+    <update id="deleteMessage">
+        UPDATE chat_messages
+        SET is_deleted = 'Y'
+        WHERE message_id = #{messageId}
+    </update>
+
+</mapper>

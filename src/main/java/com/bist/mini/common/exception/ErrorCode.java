@@ -16,9 +16,43 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C002", "허용되지 않은 메서드입니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C003", "서버 내부 오류가 발생했습니다."),
     ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "C004", "해당 엔티티를 찾을 수 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C005", "인증이 필요합니다."),
 
     // Sample
-    SAMPLE_ERROR(HttpStatus.BAD_REQUEST, "S001", "샘플 에러 예시입니다.");
+    SAMPLE_ERROR(HttpStatus.BAD_REQUEST, "S001", "샘플 에러 예시입니다."),
+
+    // Comment
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "해당 댓글을 찾을 수 없습니다."),
+    COMMENT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CM002", "해당 댓글은 이미 삭제되었습니다."),
+    COMMENT_REPLY_DEPTH_EXCEEDED(HttpStatus.NOT_FOUND, "CM003", "대댓글에는 답글을 달 수 없습니다. (1단계까지만 허용)"),
+    COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CM004", "작성자만 수정/삭제할 수 있습니다."),
+
+    // Post
+    POST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "P001", "해당 게시글에 대한 권한이 없습니다."),
+
+    // Attachment
+    ATTACHMENT_FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "AT001", "파일 크기가 허용된 용량을 초과했습니다."),
+    ATTACHMENT_EXTENSION_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "AT002", "허용되지 않는 파일 확장자입니다."),
+    ATTACHMENT_MIME_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "AT003", "허용되지 않는 MIME 타입입니다."),
+    ATTACHMENT_TOTAL_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "AT004", "게시글 전체 첨부파일 용량은 200MB를 초과할 수 없습니다."),
+
+    // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N001", "해당 알림을 찾을 수 없습니다."),
+    NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "N002", "본인의 알림만 처리할 수 있습니다."),
+
+
+    // Follow
+    SELF_FOLLOW_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "F001", "자기 자신을 팔로우할 수 없습니다."),
+    FOLLOW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "F002", "이미 팔로우한 사용자입니다."),
+    FOLLOW_NOT_FOUND(HttpStatus.NOT_FOUND, "F003", "팔로우 관계를 찾을 수 없습니다."),
+
+
+    // Auth
+    FORBIDDEN(HttpStatus.FORBIDDEN, "A001", "접근 권한이 없습니다."),
+
+    // Chat
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CH001", "해당 채팅방을 찾을 수 없습니다."),
+    CHAT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CH002", "해당 채팅방에 접근 권한이 없습니다.");
 
     private final HttpStatus status;
     private final String code;

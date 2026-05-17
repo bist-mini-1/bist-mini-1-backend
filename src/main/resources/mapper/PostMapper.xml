@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.post.dao.PostDao">
+
+    <insert id="insert" parameterType="com.bist.mini.post.entity.Post" useGeneratedKeys="true" keyProperty="postId" keyColumn="post_id">
+        INSERT INTO posts (
+            member_id, title, content, is_public, is_temp, created_at, updated_at
+        )
+        VALUES (
+            #{memberId}, #{title}, #{content}, #{isPublic}, #{isTemp}, SYSDATE, SYSDATE
+        )
+    </insert>
+
+    <update id="updateViewCount" parameterType="long">
+        UPDATE posts
+        SET view_count = view_count + 1,
+            updated_at = SYSDATE
+        WHERE post_id = #{param1}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="updatePost" parameterType="com.bist.mini.post.entity.Post">
+        UPDATE posts
+        SET title = #{title},
+            content = #{content},
+            is_public = #{isPublic},
+            is_temp = #{isTemp},
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND member_id = #{memberId}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeletePost" parameterType="map">
+        UPDATE posts
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND member_id = #{memberId}
+          AND is_deleted = 'N'
+    </update>
+
+    <!-- 관련 테이블 소프트 삭제 쿼리 -->
+    <update id="softDeleteCommentsByPostId" parameterType="long">
+        UPDATE comments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </update>
+
+    <update id="softDeletePostTagsByPostId" parameterType="long">
+        DELETE FROM post_tags
+        WHERE post_id = #{postId}
+    </update>
+
+    <insert id="insertPostTag">
+        INSERT INTO post_tags (
+            post_id, tag_id
+        ) VALUES (
+            #{postId}, #{tagId}
+        )
+    </insert>
+
+    <update id="softDeletePostLikesByPostId" parameterType="long">
+        DELETE FROM post_likes
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeleteBookmarksByPostId" parameterType="long">
+        DELETE FROM bookmarks
+        WHERE post_id = #{postId}
+    </update>
+
+    <update id="softDeleteAttachmentsByPostId" parameterType="long">
+        UPDATE attachments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </update>
+
+</mapper>

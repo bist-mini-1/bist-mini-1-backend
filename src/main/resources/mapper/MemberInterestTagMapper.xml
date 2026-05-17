@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bist.mini.member.dao.MemberInterestTagDao">
+
+    <insert id="insertMemberInterestTags">
+        INSERT INTO member_interest_tags (
+        member_id,
+        tag_id,
+        created_at
+        )
+        <foreach item="tagId" collection="tagIds" separator="UNION ALL">
+            SELECT
+            #{memberId},
+            #{tagId},
+            SYSDATE
+            FROM dual
+        </foreach>
+    </insert>
+
+    <select id="countInterestTagsByMemberId" resultType="int">
+        SELECT COUNT(*)
+        FROM member_interest_tags
+        WHERE member_id = #{memberId}
+    </select>
+
+    <select id="countExistingTags" resultType="int">
+        SELECT COUNT(*)
+        FROM tags
+        WHERE tag_id IN
+        <foreach item="tagId" collection="tagIds" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+    </select>
+
+    <select id="selectTagIdsByMemberId" resultType="long">
+        SELECT tag_id
+        FROM member_interest_tags
+        WHERE member_id = #{memberId}
+        ORDER BY tag_id
+    </select>
+
+    <delete id="deleteByMemberId">
+        DELETE FROM member_interest_tags
+        WHERE member_id = #{memberId}
+    </delete>
+
+</mapper>

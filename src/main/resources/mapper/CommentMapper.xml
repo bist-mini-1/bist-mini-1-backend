@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bist.mini.comment.dao.CommentDao">
+
+    <resultMap id="commentResultMap" type="Comment">
+        <id property="commentId" column="comment_id" />
+        <result property="postId" column="post_id" />
+        <result property="memberId" column="member_id" />
+        <result property="parentId" column="parent_id" />
+        <result property="content" column="content" />
+        <result property="isDeleted" column="is_deleted" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <result property="deletedAt" column="deleted_at" />
+        <result property="nickname" column="nickname" />
+        <result property="profileImageUrl" column="profile_image_url" />
+    </resultMap>
+
+    <select id="findByPostId" resultMap="commentResultMap">
+        SELECT 
+            c.comment_id,
+            c.post_id,
+            c.member_id,
+            c.parent_id,
+            c.content,
+            c.is_deleted,
+            c.created_at,
+            c.updated_at,
+            c.deleted_at,
+            m.nickname,
+            CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END as profile_image_url
+        FROM comments c
+        JOIN members m ON c.member_id = m.member_id
+        WHERE c.post_id = #{postId}
+          AND c.is_deleted = 'N'
+        ORDER BY c.created_at DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="findRootsByPostId" resultMap="commentResultMap">
+        SELECT 
+            c.comment_id,
+            c.post_id,
+            c.member_id,
+            c.parent_id,
+            c.content,
+            c.is_deleted,
+            c.created_at,
+            c.updated_at,
+            c.deleted_at,
+            m.nickname,
+            CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END as profile_image_url
+        FROM comments c
+        JOIN members m ON c.member_id = m.member_id
+        WHERE c.post_id = #{postId}
+          AND c.parent_id IS NULL
+          AND c.is_deleted = 'N'
+        ORDER BY c.created_at DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="findRepliesByParentIds" resultMap="commentResultMap">
+        SELECT 
+            c.comment_id,
+            c.post_id,
+            c.member_id,
+            c.parent_id,
+            c.content,
+            c.is_deleted,
+            c.created_at,
+            c.updated_at,
+            c.deleted_at,
+            m.nickname,
+            CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END as profile_image_url
+        FROM comments c
+        JOIN members m ON c.member_id = m.member_id
+        WHERE c.parent_id IN 
+        <foreach item="id" collection="parentIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          AND c.is_deleted = 'N'
+        ORDER BY c.created_at ASC
+    </select>
+
+    <select id="findById" parameterType="long" resultType="Comment">
+        SELECT 
+            comment_id,
+            post_id,
+            member_id,
+            parent_id,
+            content,
+            is_deleted,
+            created_at,
+            updated_at,
+            deleted_at
+        FROM comments
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <select id="findByParentId" parameterType="long" resultType="Comment">
+        SELECT 
+            comment_id,
+            post_id,
+            member_id,
+            parent_id,
+            content,
+            is_deleted,
+            created_at,
+            updated_at,
+            deleted_at
+        FROM comments
+        WHERE parent_id = #{parentId}
+          AND is_deleted = 'N'
+    </select>
+
+    <insert id="insert" parameterType="Comment" useGeneratedKeys="true" keyProperty="commentId" keyColumn="comment_id">
+        INSERT INTO comments (
+            post_id,
+            member_id,
+            parent_id,
+            content,
+            is_deleted,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{postId},
+            #{memberId},
+            #{parentId, jdbcType=NUMERIC},
+            #{content},
+            #{isDeleted},
+            SYSDATE,
+            SYSDATE
+        )
+    </insert>
+
+    <update id="update" parameterType="Comment">
+        UPDATE comments
+        SET content = #{content},
+            updated_at = SYSDATE
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <select id="findCommentsToDelete" parameterType="long" resultType="Comment">
+        SELECT 
+            comment_id,
+            post_id,
+            member_id,
+            parent_id,
+            content,
+            is_deleted,
+            created_at,
+            updated_at,
+            deleted_at
+        FROM comments
+        WHERE (comment_id = #{commentId} OR parent_id = #{commentId})
+          AND is_deleted = 'N'
+    </select>
+
+    <update id="deleteCommentAndChildren" parameterType="long">
+        UPDATE comments
+        SET is_deleted = 'Y',
+            deleted_at = SYSDATE,
+            updated_at = SYSDATE
+        WHERE comment_id = #{commentId}
+           OR parent_id = #{commentId}
+    </update>
+
+    <select id="countByPostId" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE post_id = #{postId}
+          AND is_deleted = 'N'
+    </select>
+
+    <select id="countRootsByPostId" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE post_id = #{postId}
+          AND parent_id IS NULL
+          AND is_deleted = 'N'
+    </select>
+
+    <select id="findBestCommentByPostId" resultMap="commentResultMap">
+        SELECT * FROM (
+            SELECT 
+                c.comment_id,
+                c.post_id,
+                c.member_id,
+                c.parent_id,
+                c.content,
+                c.is_deleted,
+                c.created_at,
+                c.updated_at,
+                c.deleted_at,
+                m.nickname,
+                CASE WHEN m.profile_image IS NOT NULL THEN '/api/members/' || m.member_id || '/profile-image' ELSE NULL END as profile_image_url,
+                (SELECT COUNT(*) FROM comment_likes WHERE comment_id = c.comment_id) as like_count
+            FROM comments c
+            JOIN members m ON c.member_id = m.member_id
+            WHERE c.post_id = #{postId}
+              AND c.is_deleted = 'N'
+            ORDER BY like_count DESC, c.created_at ASC
+        ) 
+        WHERE ROWNUM = 1 AND like_count > 0
+    </select>
+
+</mapper>

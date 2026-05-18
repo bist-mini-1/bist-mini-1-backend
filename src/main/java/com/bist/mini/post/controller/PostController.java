@@ -6,9 +6,7 @@ import com.bist.mini.post.dto.PostRequest;
 import com.bist.mini.post.dto.PostResponse;
 import com.bist.mini.post.entity.Post;
 import com.bist.mini.post.service.PostService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +19,6 @@ import java.util.List;
  * 게시글 API 컨트롤러
  */
 @Slf4j
-@Tag(name = "Post", description = "게시글 관리 API")
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
@@ -29,7 +26,6 @@ public class PostController {
 
     private final PostService postService;
 
-    @Operation(summary = "게시글 작성", description = "새로운 게시글을 등록합니다. (토큰 인증 기반)")
     @PostMapping
     public ApiResponse<PostResponse> createPost(
             @LoginMember Long memberId,
@@ -41,28 +37,25 @@ public class PostController {
     }
 
 
-    @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 단일 게시글을 상세 조회합니다.")
     @GetMapping("/{postId}")
     public ApiResponse<PostResponse> getPostDetail(
-            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @PathVariable("postId") Long postId,
             @LoginMember(required = false) Long memberId) {
         Post post = postService.getPostDetailWithViewCount(postId, memberId);
         return ApiResponse.success(postService.convertToResponse(post, memberId));
     }
 
-    @Operation(summary = "내 글 여부 확인", description = "현재 로그인한 사용자가 해당 게시글 작성자인지 확인합니다.")
     @GetMapping("/{postId}/mine")
     public ApiResponse<Boolean> isMyPost(
-            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @PathVariable("postId") Long postId,
             @LoginMember Long memberId) {
         log.debug("게시글 작성자 확인 요청: postId={}, memberId={}", postId, memberId);
         return ApiResponse.success(postService.isMyPost(postId, memberId));
     }
 
-    @Operation(summary = "게시글 수정", description = "게시글 내용을 수정합니다. (작성자만 가능)")
     @PutMapping("/{postId}")
     public ApiResponse<PostResponse> updatePost(
-            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @PathVariable("postId") Long postId,
             @LoginMember Long memberId,
             @Valid @RequestBody PostRequest postRequest) {
         log.debug("게시글 수정 요청: postId={}, memberId={}", postId, memberId);
@@ -72,27 +65,24 @@ public class PostController {
         return ApiResponse.success(postService.convertToResponse(updated, memberId));
     }
 
-    @Operation(summary = "게시글 삭제", description = "게시글을 삭제 처리합니다. (작성자만 가능)")
     @DeleteMapping("/{postId}")
     public ApiResponse<Void> deletePost(
-            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @PathVariable("postId") Long postId,
             @LoginMember Long memberId) {
         log.debug("게시글 삭제 요청: postId={}, memberId={}", postId, memberId);
         postService.deletePost(postId, memberId);
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "임시저장 게시글 삭제", description = "본인이 작성한 임시저장 게시글을 삭제합니다.")
     @DeleteMapping("/temp/{postId}")
     public ApiResponse<Void> deleteTempPost(
-            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @PathVariable("postId") Long postId,
             @LoginMember Long memberId) {
         log.debug("임시저장 게시글 삭제 요청: postId={}, memberId={}", postId, memberId);
         postService.deleteTempPost(postId, memberId);
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "임시저장 게시글 목록 조회", description = "본인이 작성한 임시저장 게시글 목록을 조회합니다.")
     @GetMapping("/temp/list")
     public ApiResponse<List<PostResponse>> getTempPostList(
             @LoginMember Long memberId) {
@@ -100,10 +90,9 @@ public class PostController {
         return ApiResponse.success(postService.convertToResponses(tempPosts, memberId));
     }
 
-    @Operation(summary = "임시저장 게시글 상세 조회", description = "본인이 작성한 임시저장 게시글을 상세 조회합니다.")
     @GetMapping("/temp/{postId}")
     public ApiResponse<PostResponse> getTempPostDetail(
-            @Parameter(description = "게시글 ID") @PathVariable("postId") Long postId,
+            @PathVariable("postId") Long postId,
             @LoginMember Long memberId) {
         Post tempPost = postService.getTempPostDetail(postId, memberId);
         return ApiResponse.success(postService.convertToResponse(tempPost, memberId));

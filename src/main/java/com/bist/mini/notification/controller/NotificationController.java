@@ -5,8 +5,7 @@ import com.bist.mini.common.jwt.JwtProvider;
 import com.bist.mini.notification.dto.NotificationResponseDto;
 import com.bist.mini.notification.service.NotificationService;
 import com.bist.mini.common.exception.CustomException;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Tag(name = "Notification", description = "알림 API")
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -27,7 +25,6 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final JwtProvider jwtProvider;
 
-    @Operation(summary = "알림 구독 (SSE)", description = "실시간 알림을 받기 위해 SSE 연결을 맺습니다.")
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<SseEmitter> subscribe(
             @RequestHeader(value = "Authorization", required = false) String token) {
@@ -55,7 +52,6 @@ public class NotificationController {
         }
     }
 
-    @Operation(summary = "내 알림 목록 조회", description = "로그인한 사용자의 알림 목록을 최신순으로 조회합니다.")
     @GetMapping
     public ApiResponse<List<NotificationResponseDto>> getNotifications(
             @RequestHeader("Authorization") String token) {
@@ -67,7 +63,6 @@ public class NotificationController {
         return ApiResponse.success(notifications);
     }
 
-    @Operation(summary = "알림 읽음 처리", description = "특정 알림을 읽음 상태로 변경합니다.")
     @PatchMapping("/{id}/read")
     public ApiResponse<Void> markAsRead(
             @PathVariable("id") Long id,
@@ -77,7 +72,6 @@ public class NotificationController {
         return ApiResponse.success();
     }
 
-    @Operation(summary = "모든 알림 읽음 처리", description = "모든 알림을 읽음 상태로 변경합니다.")
     @PatchMapping("/read-all")
     public ApiResponse<Void> markAllAsRead(
             @RequestHeader("Authorization") String token) {
@@ -86,7 +80,6 @@ public class NotificationController {
         return ApiResponse.success();
     }
 
-    @Operation(summary = "알림 삭제", description = "특정 알림을 삭제합니다.")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteNotification(
             @PathVariable("id") Long id,
@@ -96,7 +89,6 @@ public class NotificationController {
         return ApiResponse.success();
     }
 
-    @Operation(summary = "모든 알림 삭제", description = "모든 알림을 삭제합니다.")
     @DeleteMapping("/all")
     public ApiResponse<Void> deleteAllNotifications(
             @RequestHeader("Authorization") String token) {

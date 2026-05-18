@@ -11,8 +11,7 @@ import com.bist.mini.mypage.dto.PasswordUpdateRequest;
 import com.bist.mini.mypage.dto.MyPostResponse;
 import com.bist.mini.mypage.dto.ProfileImageUpdateResponse;
 import com.bist.mini.mypage.service.MyPageService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,6 @@ import java.util.List;
 /**
  * 마이페이지 API 컨트롤러
  */
-@Tag(name = "MyPage", description = "마이페이지 API")
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -55,7 +53,6 @@ public class MyPageController {
 
     // ── 프로필 조회 ──────────────────────────────────────────────────────────
 
-    @Operation(summary = "내 프로필 조회", description = "로그인된 회원의 프로필 정보를 조회합니다.")
     @GetMapping("/me")
     public ApiResponse<MemberProfileResponse> getMyProfile(HttpServletRequest httpRequest) {
         Long memberId = extractMemberId(httpRequest);
@@ -65,7 +62,6 @@ public class MyPageController {
 
     // ── 내 게시글 목록 ─────────────────────────────────────────────────────────
 
-    @Operation(summary = "내 게시글 목록 조회", description = "로그인된 회원이 작성한 게시글 목록을 조회합니다.")
     @GetMapping("/me/posts")
     public ApiResponse<List<MyPostResponse>> getMyPosts(HttpServletRequest httpRequest) {
         Long memberId = extractMemberId(httpRequest);
@@ -74,7 +70,6 @@ public class MyPageController {
 
     // ── 타인 프로필 조회 ─────────────────────────────────────────────────────────
 
-    @Operation(summary = "유저 프로필 조회", description = "특정 회원의 공개 프로필 정보를 조회합니다.")
     @GetMapping("/{memberId}/profile")
     public ApiResponse<MemberProfileResponse> getUserProfile(
             @PathVariable Long memberId,
@@ -86,7 +81,6 @@ public class MyPageController {
 
     // ── 타인 공개 게시글 목록 ───────────────────────────────────────────────────
 
-    @Operation(summary = "유저 게시글 목록 조회", description = "특정 회원이 작성한 공개 게시글 목록을 조회합니다.")
     @GetMapping("/{memberId}/posts")
     public ApiResponse<List<MyPostResponse>> getUserPosts(
             @PathVariable Long memberId
@@ -96,7 +90,6 @@ public class MyPageController {
 
     // ── 북마크한 게시글 목록 ────────────────────────────────────────────────────
 
-    @Operation(summary = "북마크한 게시글 목록 조회", description = "로그인된 회원이 북마크한 게시글 목록을 조회합니다.")
     @GetMapping("/me/bookmarks")
     public ApiResponse<List<MyPostResponse>> getBookmarkedPosts(HttpServletRequest httpRequest) {
         Long memberId = extractMemberId(httpRequest);
@@ -105,7 +98,6 @@ public class MyPageController {
 
     // ── 닉네임 수정 ──────────────────────────────────────────────────────────
 
-    @Operation(summary = "닉네임 수정", description = "로그인된 회원의 닉네임을 수정합니다.")
     @PatchMapping("/me/nickname")
     public ApiResponse<Void> updateNickname(
             HttpServletRequest httpRequest,
@@ -118,7 +110,6 @@ public class MyPageController {
 
     // ── 비밀번호 변경 ─────────────────────────────────────────────────────────
 
-    @Operation(summary = "비밀번호 변경", description = "현재 비밀번호 확인 후 새 비밀번호로 변경합니다.")
     @PatchMapping("/me/password")
     public ApiResponse<Void> updatePassword(
             HttpServletRequest httpRequest,
@@ -131,7 +122,6 @@ public class MyPageController {
 
     // ── 자기소개 수정 ─────────────────────────────────────────────────────────
 
-    @Operation(summary = "자기소개 수정", description = "로그인된 회원의 자기소개를 수정합니다.")
     @PatchMapping("/me/bio")
     public ApiResponse<Void> updateBio(
             HttpServletRequest httpRequest,
@@ -144,7 +134,6 @@ public class MyPageController {
 
     // ── 프로필 이미지 업로드 ───────────────────────────────────────────────────
 
-    @Operation(summary = "프로필 이미지 변경", description = "프로필 이미지를 업로드하고 URL을 반환합니다. (JPG·PNG·GIF·WEBP / 최대 5MB)")
     @PatchMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProfileImageUpdateResponse> updateProfileImage(
             HttpServletRequest httpRequest,
@@ -157,7 +146,6 @@ public class MyPageController {
 
     // ── 프로필 이미지 조회 ────────────────────────────────────────────────────
 
-    @Operation(summary = "내 프로필 이미지 조회", description = "로그인된 회원의 프로필 이미지(BLOB)를 반환합니다.")
     @GetMapping("/me/profile-image")
     public ResponseEntity<byte[]> getMyProfileImage(
             @LoginMember Long memberId
@@ -165,7 +153,6 @@ public class MyPageController {
         return myPageService.getProfileImage(memberId);
     }
 
-    @Operation(summary = "프로필 이미지 조회", description = "특정 회원의 프로필 이미지(BLOB)를 반환합니다.")
     @GetMapping("/{memberId}/profile-image")
     public ResponseEntity<byte[]> getProfileImage(
             @PathVariable Long memberId
@@ -175,7 +162,6 @@ public class MyPageController {
 
     // ── 관심 태그 조회 ────────────────────────────────────────────────────────
 
-    @Operation(summary = "내 관심 태그 조회", description = "로그인된 회원의 관심 태그 ID 목록을 조회합니다.")
     @GetMapping("/me/interest-tags")
     public ApiResponse<List<Long>> getInterestTags(HttpServletRequest httpRequest) {
         Long memberId = extractMemberId(httpRequest);
@@ -184,7 +170,6 @@ public class MyPageController {
 
     // ── 관심 태그 수정 ────────────────────────────────────────────────────────
 
-    @Operation(summary = "내 관심 태그 수정", description = "로그인된 회원의 관심 태그를 수정합니다. (기존 태그 전체 교체)")
     @PatchMapping("/me/interest-tags")
     public ApiResponse<Void> updateInterestTags(
             HttpServletRequest httpRequest,
